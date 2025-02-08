@@ -1,3 +1,4 @@
+import ChatArea from "./ChatArea";
 import ChatPreview from "./components/ChatPreview";
 import styled from "styled-components";
 
@@ -29,8 +30,10 @@ const ChatList = styled.div`
 const ChatAreaWrapper = styled.div`
   flex-grow: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 100%;
+  flex-direction: column;
+  padding-left: 20px;
+  padding-right: 20px;
 `;
 
 
@@ -148,7 +151,7 @@ const Home = () => {
        
       </ChatList>
       <ChatAreaWrapper>
-        <p>Select a chat to start messaging.</p>
+        <ChatArea/>
       </ChatAreaWrapper>
     </HomeWrapper>
   );
