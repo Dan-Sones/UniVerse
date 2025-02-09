@@ -1,6 +1,8 @@
+import { useState } from "react";
 import ChatArea from "./ChatArea";
 import ChatPreview from "./components/ChatPreview";
 import styled from "styled-components";
+import { ChatType } from "./models/Chat";
 
 const HomeWrapper = styled.div`
   display: flex;
@@ -20,7 +22,7 @@ const ChatList = styled.div`
   height: calc(100vh - 64px); /* Adjust 60px to match your header height */
   overflow-y: auto; /* Enables scrolling for overflowing chat items */
   border-right: 1px solid lightgray;
-  
+
   @media (max-width: 768px) {
     width: 100%;
     height: 40vh; /* Ensures it doesn't take the whole screen on mobile */
@@ -34,9 +36,7 @@ const ChatAreaWrapper = styled.div`
   min-height: 100%;
   flex-direction: column;
   padding-left: 10px;
-
 `;
-
 
 const chatItems = [
   {
@@ -142,17 +142,42 @@ const chatItems = [
 ];
 
 const Home = () => {
+  const [chat, setChat] = useState<ChatType>({
+    recepient: {
+      name: "",
+      profilePictureURL: "",
+    },
+    messages: []
+  });
+
+
+  const addMessage = (message: string) => {
+    setChat((prevChat) => {
+      return {
+        ...prevChat,
+        messages: [...prevChat.messages, {
+          message: message,
+          isSent: true
+        }]
+      }
+    })
+  }
+
   return (
     <HomeWrapper>
       <ChatList>
-
         {chatItems.map((chat) => {
-          return <ChatPreview profilePictureUrl={""} username={chat.username} message={chat.message} />
+          return (
+            <ChatPreview
+              profilePictureUrl={""}
+              username={chat.username}
+              message={chat.message}
+            />
+          );
         })}
-       
       </ChatList>
       <ChatAreaWrapper>
-        <ChatArea/>
+        <ChatArea chat={chat} addMessage={addMessage} />
       </ChatAreaWrapper>
     </HomeWrapper>
   );
