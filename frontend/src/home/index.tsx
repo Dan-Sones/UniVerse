@@ -5,7 +5,8 @@ import styled from "styled-components";
 const HomeWrapper = styled.div`
   display: flex;
   width: 100%;
-  height: calc(100vh - 60px); /* Same as ChatList to keep alignment */
+  height: calc(100vh - 64px); /* Same as ChatList to keep alignment */
+  overflow-y: hidden;
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -16,7 +17,7 @@ const ChatList = styled.div`
   width: 30%;
   min-width: 250px;
   max-width: 400px;
-  height: calc(100vh - 60px); /* Adjust 60px to match your header height */
+  height: calc(100vh - 64px); /* Adjust 60px to match your header height */
   overflow-y: auto; /* Enables scrolling for overflowing chat items */
   border-right: 1px solid lightgray;
   
@@ -32,8 +33,8 @@ const ChatAreaWrapper = styled.div`
   display: flex;
   min-height: 100%;
   flex-direction: column;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-left: 10px;
+
 `;
 
 

@@ -4,7 +4,11 @@ import styled from "styled-components";
 import Chat from "./components/Chat";
 
 const MessageArea = styled.div`
-  height: 100%;
+  height: calc(100vh - 64px);
+  padding-top: 15px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 `;
 
 const ChatArea = () => {

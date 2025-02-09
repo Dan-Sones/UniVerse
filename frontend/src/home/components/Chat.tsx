@@ -6,11 +6,9 @@ interface ChatWrapperProps {
 }
 
 const ChatWrapper = styled.div<ChatWrapperProps>`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 10px;
   gap: 10px;
+  display: flex;
+  align-items: center;
   justify-content: ${({ isSent }) => (isSent ? "flex-end" : "flex-start")};
 `;
 
@@ -85,7 +83,7 @@ const Chat = (props: ChatProps) => {
       {isSent && (
         <Avatar
           alt={"yooo"}
-          sx={{ width: 40, height: 40 }}
+          sx={{ width: 40, height: 40, marginRight: '10px' }}
           src={
             "https://pub-1de51ae1e68144d78f7c582e1dda3ab1.r2.dev/clh8n0i2200wsmi08eyobfu35/7ee08a5b-8158-464b-b5da-d183e0e64831.webp"
           }

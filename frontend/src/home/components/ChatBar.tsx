@@ -29,7 +29,7 @@ const ChatBar = () => {
         <AddIcon />
       </Button>
       <TextField id="outlined-basic" variant="outlined" fullWidth />
-      <Button variant="contained" endIcon={<SendIcon />}>
+      <Button sx={{height: "45px"}} variant="contained" endIcon={<SendIcon />}>
         Send
       </Button>{" "}
     </ChatBarWrapper>
