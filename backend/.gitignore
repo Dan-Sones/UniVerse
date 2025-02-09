@@ -1,0 +1,7 @@
+# GoLand IDE settings
+.idea/
+*.iml
+*.ipr
+*.iws
+*.goos
+*.goarch
