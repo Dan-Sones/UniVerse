@@ -5,3 +5,5 @@
 *.iws
 *.goos
 *.goarch
+.env.dev
+.env.prod
