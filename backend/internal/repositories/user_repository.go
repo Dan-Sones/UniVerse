@@ -14,6 +14,7 @@ import (
 type UserRepository interface {
 	CreateUser(ctx context.Context, request dtos.CreateUserRequest) (*users.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*users.User, error)
+	GetUserByID(ctx context.Context, id int64) (*users.User, error)
 }
 
 type UserRepositoryPGImpl struct {
@@ -59,5 +60,21 @@ func (r *UserRepositoryPGImpl) GetUserByEmail(ctx context.Context, email string)
 		return nil, err
 	}
 
+	return &user, nil
+}
+
+func (r *UserRepositoryPGImpl) GetUserByID(ctx context.Context, id int64) (*users.User, error) {
+	var user users.User
+	query := `SELECT id, username, email FROM auth.users WHERE id = $1`
+
+	err := r.db.QueryRow(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, appErr.ErrNotFound
+	}
+
+	if err != nil {
+		return nil, err
+	}
 	return &user, nil
 }

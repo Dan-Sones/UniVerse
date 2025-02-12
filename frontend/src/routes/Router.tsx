@@ -1,22 +1,23 @@
-import { BrowserRouter, Route, Routes } from "react-router";
-import Home from "../home";
-import styled from "styled-components";
+import { Route, Routes } from 'react-router';
+import Home from '../home';
+import styled from 'styled-components';
+import Login from '../login/Login';
+
 
 const Wrapper = styled.div`
-    max-height: 100vh;
-`
+  max-height: 100vh;
+`;
 
 const Router = () => {
-    return(
+  return (
     <Wrapper>
-      <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Home/>} ></Route>
-              
-          </Routes>
-      </BrowserRouter>
-      </Wrapper>
-    )
-  }
-  
-  export default Router;
+      <Routes>
+        <Route path="/home" element={<Home />}></Route>
+        <Route path="/login" element={<Login />}></Route>
+      </Routes>
+    </Wrapper>
+  );
+};
+
+export default Router;
+ 

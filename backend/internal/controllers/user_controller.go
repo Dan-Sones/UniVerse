@@ -4,8 +4,10 @@ import (
 	"backend/internal/dtos"
 	appErr "backend/internal/errors"
 	"backend/internal/services"
+	"backend/internal/utils"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
@@ -64,7 +66,8 @@ func (uc *UserController) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{Error: "Failed to login"})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.SetCookie("token", token, 3600*24, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, gin.H{"message:": "login successful"})
 }
 
 func (uc *UserController) GetProfile(c *gin.Context) {
@@ -75,4 +78,38 @@ func (uc *UserController) GetProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"user_id": userID, "message": "Welcome to my page, look around... learn something your government doesn't want you to "})
+}
+
+func (uc *UserController) Me(c *gin.Context) {
+	tokenString, err := c.Cookie("token")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "Unauthorised"})
+		return
+	}
+
+	token, claims, err := utils.ValidateToken(tokenString)
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "Invalid token"})
+	}
+
+	userID, ok := claims["user_id"].(float64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "Invalid token claims bruhh"})
+		c.Abort()
+		return
+	}
+
+	me, err := uc.service.Me(c.Request.Context(), userID)
+	if errors.Is(err, appErr.ErrNotFound) {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "User not found"})
+		return
+	}
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{Error: "Failed to get me"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": me})
+
 }
