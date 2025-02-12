@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"backend/internal/dtos"
+	appErr "backend/internal/errors"
 	"backend/internal/services"
 	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
@@ -30,6 +32,12 @@ func (uc *UserController) CreateUser(c *gin.Context) {
 	}
 
 	_, err := uc.service.CreateUser(c.Request.Context(), request)
+
+	if errors.Is(err, appErr.ErrConflict) {
+		c.JSON(http.StatusConflict, dtos.ErrorResponse{Error: "Username or email already in use"})
+		return
+	}
+
 	if err != nil {
 		uc.Logger.Error().Err(err).Msg("Failed to create user")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})

@@ -2,9 +2,11 @@ package services
 
 import (
 	"backend/internal/dtos"
+	appErr "backend/internal/errors"
 	"backend/internal/models/users"
 	"backend/internal/repositories"
 	"context"
+	"errors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"
@@ -30,5 +32,15 @@ func (s *UserService) CreateUser(ctx context.Context, request dtos.CreateUserReq
 
 	request.Password = string(bytes)
 
-	return s.repo.CreateUser(ctx, request)
+	createdUser, err := s.repo.CreateUser(ctx, request)
+
+	if errors.Is(err, appErr.ErrConflict) {
+		return nil, appErr.ErrConflict // Use standardized error
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return createdUser, nil
 }
