@@ -5,11 +5,11 @@ import (
 	appErr "backend/internal/errors"
 	"backend/internal/models/users"
 	"backend/internal/repositories"
+	"backend/internal/utils"
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -25,12 +25,12 @@ func NewUserService(ctx context.Context, db *pgxpool.Pool) *UserService {
 
 func (s *UserService) CreateUser(ctx context.Context, request dtos.CreateUserRequest) (*users.User, error) {
 
-	bytes, err := bcrypt.GenerateFromPassword([]byte(request.Password), 14)
+	hashedPassword, err := utils.HashPassword(request.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	request.Password = string(bytes)
+	request.Password = hashedPassword
 
 	createdUser, err := s.repo.CreateUser(ctx, request)
 
@@ -43,4 +43,27 @@ func (s *UserService) CreateUser(ctx context.Context, request dtos.CreateUserReq
 	}
 
 	return createdUser, nil
+}
+
+func (s *UserService) Login(ctx context.Context, request dtos.LoginDTO) (string, error) {
+	user, err := s.repo.GetUserByEmail(ctx, request.Email)
+
+	if errors.Is(err, appErr.ErrNotFound) {
+		return "", appErr.ErrNotFound
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	if !utils.ComparePasswords(user.Password, request.Password) {
+		return "", appErr.ErrInvalidCredentials
+	}
+
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

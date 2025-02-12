@@ -46,3 +46,24 @@ func (uc *UserController) CreateUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{})
 }
+
+func (uc *UserController) Login(c *gin.Context) {
+	var request dtos.LoginDTO
+	if err := c.ShouldBindJSON(&request); err != nil {
+		uc.Logger.Error().Err(err).Msg("Failed to bind body")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+	}
+
+	token, err := uc.service.Login(c.Request.Context(), request)
+	if errors.Is(err, appErr.ErrInvalidCredentials) {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "Invalid email or password"})
+	}
+
+	if err != nil {
+		uc.Logger.Error().Err(err).Msg("Failed to login")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to login"})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
+
+}

@@ -35,6 +35,7 @@ func (r *routes) InitializeRoutes(ctx context.Context, router *gin.Engine, db *p
 	users := public.Group("/users")
 	{
 		users.POST("/signup", userController.CreateUser)
+		users.POST("/login", userController.Login)
 	}
 
 }

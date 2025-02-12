@@ -5,6 +5,7 @@ import (
 	appErr "backend/internal/errors"
 	"backend/internal/models/users"
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -12,6 +13,7 @@ import (
 
 type UserRepository interface {
 	CreateUser(ctx context.Context, request dtos.CreateUserRequest) (*users.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*users.User, error)
 }
 
 type UserRepositoryPGImpl struct {
@@ -35,6 +37,22 @@ func (r *UserRepositoryPGImpl) CreateUser(ctx context.Context, request dtos.Crea
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 		return nil, appErr.ErrConflict
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepositoryPGImpl) GetUserByEmail(ctx context.Context, email string) (*users.User, error) {
+	var user users.User
+	query := `SELECT * FROM auth.users WHERE email = $1`
+	err := r.db.QueryRow(ctx, query, email).Scan(&user.ID, &user.Username, &user.Email, &user.Password)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, appErr.ErrNotFound
 	}
 
 	if err != nil {
