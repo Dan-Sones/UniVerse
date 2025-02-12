@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"backend/internal/models/infrastructure/httpServer/api/middleware"
+	"backend/internal/infrastructure/httpServer/api/middleware"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"time"
