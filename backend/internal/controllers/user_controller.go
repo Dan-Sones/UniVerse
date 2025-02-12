@@ -70,6 +70,11 @@ func (uc *UserController) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message:": "login successful"})
 }
 
+func (uc *UserController) Logout(c *gin.Context) {
+	c.SetCookie("token", "", -1, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, gin.H{})
+}
+
 func (uc *UserController) GetProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {

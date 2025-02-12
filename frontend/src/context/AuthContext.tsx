@@ -11,10 +11,10 @@ import { AxiosInstance } from 'axios';
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) throw new Error("useAuth must be used within an AuthProvider");
-    return context;
-  };
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  return context;
+};
 
 interface AuthContextType {
   authenticated: boolean;
@@ -28,8 +28,6 @@ interface AuthProviderProps {
   axiosClient: AxiosInstance;
 }
 
-
-
 export const AuthContextProvider = (props: AuthProviderProps) => {
   const { children, axiosClient } = props;
   const [authenticated, setAuthenticated] = useState<boolean>(false);
@@ -38,7 +36,7 @@ export const AuthContextProvider = (props: AuthProviderProps) => {
   const checkAuth = async () => {
     try {
       const response = await axiosClient.get('/users/me');
-      if (response.status == 200) {
+      if (response.status === 200) {
         setUser(response.data.user);
         setAuthenticated(true);
       } else {
@@ -57,16 +55,23 @@ export const AuthContextProvider = (props: AuthProviderProps) => {
 
   const login = async (email: string, password: string) => {
     try {
-        await axiosClient.post('/users/login', {email, password})
-        await checkAuth();
+      await axiosClient.post('/users/login', { email, password });
+      await checkAuth();
     } catch (error) {
-        // handle some error idk how
+      // handle some error idk how
     }
   };
 
-  const logout = () => {
-    setUser(undefined);
-    setAuthenticated(false);
+  const logout = async () => {
+    try {
+    await axiosClient.post('/users/logout');
+        await checkAuth();
+        setUser(undefined);
+        setAuthenticated(false);
+      
+    } catch (error) {
+      // handle some error
+    }
   };
 
   return (
