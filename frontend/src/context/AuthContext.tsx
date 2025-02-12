@@ -19,6 +19,7 @@ export const useAuth = () => {
 interface AuthContextType {
   authenticated: boolean;
   user: User | undefined;
+  loading: boolean;
   login: (email: string, password: string) => void;
   logout: VoidFunction;
 }
@@ -31,9 +32,11 @@ interface AuthProviderProps {
 export const AuthContextProvider = (props: AuthProviderProps) => {
   const { children, axiosClient } = props;
   const [authenticated, setAuthenticated] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<User | undefined>();
 
   const checkAuth = async () => {
+    
     try {
       const response = await axiosClient.get('/users/me');
       if (response.status === 200) {
@@ -46,6 +49,8 @@ export const AuthContextProvider = (props: AuthProviderProps) => {
     } catch (error) {
       setAuthenticated(false);
       setUser(undefined);
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -75,7 +80,7 @@ export const AuthContextProvider = (props: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, authenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, authenticated, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
