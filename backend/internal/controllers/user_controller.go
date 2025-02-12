@@ -51,7 +51,7 @@ func (uc *UserController) Login(c *gin.Context) {
 	var request dtos.LoginDTO
 	if err := c.ShouldBindJSON(&request); err != nil {
 		uc.Logger.Error().Err(err).Msg("Failed to bind body")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{Error: "Invalid request body"})
 	}
 
 	token, err := uc.service.Login(c.Request.Context(), request)
@@ -61,9 +61,18 @@ func (uc *UserController) Login(c *gin.Context) {
 
 	if err != nil {
 		uc.Logger.Error().Err(err).Msg("Failed to login")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to login"})
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{Error: "Failed to login"})
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
+}
 
+func (uc *UserController) GetProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "No user found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user_id": userID, "message": "Welcome to my page, look around... learn something your government doesn't want you to "})
 }

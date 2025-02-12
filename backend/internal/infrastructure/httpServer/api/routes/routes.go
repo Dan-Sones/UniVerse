@@ -2,6 +2,7 @@ package routes
 
 import (
 	"backend/internal/controllers"
+	"backend/internal/infrastructure/httpServer/api/middleware"
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -36,6 +37,12 @@ func (r *routes) InitializeRoutes(ctx context.Context, router *gin.Engine, db *p
 	{
 		users.POST("/signup", userController.CreateUser)
 		users.POST("/login", userController.Login)
+	}
+
+	protected := public.Group("/users")
+	protected.Use(middleware.JWTMiddleware())
+	{
+		protected.GET("/profile", userController.GetProfile)
 	}
 
 }
