@@ -8,7 +8,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - .env.dev  # Loads environment variables
+      - .env.dev
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

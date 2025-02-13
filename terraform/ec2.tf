@@ -1,0 +1,45 @@
+resource "aws_instance" "go_backend" {
+  ami                    = "ami-0c02fb55956c7d316"
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.go_backend_key.key_name
+  vpc_security_group_ids = [var.security_group_id]
+
+  iam_instance_profile = var.profile
+
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo yum update -y
+              sudo yum install -y aws-cli postgresql
+
+              sudo bash -c 'echo "@reboot root /var/lib/cloud/instance/scripts/user-data" >> /etc/crontab'
+           
+              aws s3 cp s3://${aws_s3_bucket.go_binary_bucket.bucket}/universe-messenger /home/ec2-user/universe-messenger
+              chmod +x /home/ec2-user/universe-messenger
+
+              aws s3 cp s3://${aws_s3_bucket.go_binary_bucket.bucket}/.env.prod /home/ec2-user/.env.prod
+
+            
+              # Create systemd service for the Go app
+              cat <<EOT > /etc/systemd/system/universe-messenger.service
+              [Unit]
+              Description=Universe Messenger API
+              After=network.target
+
+              [Service]
+              EnvironmentFile=/home/ec2-user/.env.prod
+              ExecStart=/home/ec2-user/universe-messenger
+              Restart=always
+              User=ec2-user
+              WorkingDirectory=/home/ec2-user
+
+              [Install]
+              WantedBy=multi-user.target
+              EOT
+
+              # Enable and start the service
+              sudo systemctl daemon-reload
+              sudo systemctl enable universe-messenger
+              sudo systemctl start universe-messenger
+              EOF
+
+}

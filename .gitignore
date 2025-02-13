@@ -1,0 +1,6 @@
+terraform/.tfvars
+universe-messenger-key.pem
+terraform/.env.prod
+terraform/.terraform
+terraform.tfstate
+terraform.tfstate.backup
