@@ -54,16 +54,19 @@ func (uc *UserController) Login(c *gin.Context) {
 	if err := c.ShouldBindJSON(&request); err != nil {
 		uc.Logger.Error().Err(err).Msg("Failed to bind body")
 		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{Error: "Invalid request body"})
+		return
 	}
 
 	token, err := uc.service.Login(c.Request.Context(), request)
 	if errors.Is(err, appErr.ErrInvalidCredentials) {
 		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "Invalid email or password"})
+		return
 	}
 
 	if err != nil {
 		uc.Logger.Error().Err(err).Msg("Failed to login")
 		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{Error: "Failed to login"})
+		return
 	}
 
 	c.SetCookie("token", token, 3600*24, "/", "localhost", false, true)

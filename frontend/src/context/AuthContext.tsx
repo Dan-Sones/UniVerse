@@ -20,7 +20,7 @@ interface AuthContextType {
   authenticated: boolean;
   user: User | undefined;
   loading: boolean;
-  login: (email: string, password: string) => void;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: VoidFunction;
 }
 
@@ -36,7 +36,6 @@ export const AuthContextProvider = (props: AuthProviderProps) => {
   const [user, setUser] = useState<User | undefined>();
 
   const checkAuth = async () => {
-    
     try {
       const response = await axiosClient.get('/users/me');
       if (response.status === 200) {
@@ -50,7 +49,7 @@ export const AuthContextProvider = (props: AuthProviderProps) => {
       setAuthenticated(false);
       setUser(undefined);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -58,29 +57,31 @@ export const AuthContextProvider = (props: AuthProviderProps) => {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
       await axiosClient.post('/users/login', { email, password });
       await checkAuth();
+      return true;
     } catch (error) {
-      // handle some error idk how
+      return false;
     }
   };
 
   const logout = async () => {
     try {
-    await axiosClient.post('/users/logout');
-        await checkAuth();
-        setUser(undefined);
-        setAuthenticated(false);
-      
+      await axiosClient.post('/users/logout');
+      await checkAuth();
+      setUser(undefined);
+      setAuthenticated(false);
     } catch (error) {
       // handle some error
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, authenticated, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, authenticated, login, logout, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );
