@@ -29,8 +29,12 @@ func (uc *UserController) CreateUser(c *gin.Context) {
 	var request dtos.CreateUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		uc.Logger.Error().Err(err).Msg("Failed to bind body")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{Error: "Failed to bind body"})
 		return
+	}
+
+	if request.Password != request.ConfirmPassword {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{Error: "Invalid request"})
 	}
 
 	_, err := uc.service.CreateUser(c.Request.Context(), request)
@@ -42,7 +46,7 @@ func (uc *UserController) CreateUser(c *gin.Context) {
 
 	if err != nil {
 		uc.Logger.Error().Err(err).Msg("Failed to create user")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{Error: "Failed to create user"})
 		return
 	}
 
