@@ -1,15 +1,8 @@
-import { use, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import {
-  FormControl,
-  InputLabel,
-  Input,
-  FormHelperText,
-  TextField,
-  Button,
-} from '@mui/material';
+import { TextField, Button } from '@mui/material';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 const LoginWrapper = styled.div`
   display: flex;
@@ -17,19 +10,26 @@ const LoginWrapper = styled.div`
   align-items: center;
   flex-grow: 1;
   min-height: calc(100vh - 64px);
+  background-color: #f4f6f8;
 `;
 
 const LoginForm = styled.form`
   display: flex;
   flex-direction: column;
-  width: 25%;
-  gap: 15px;
+  width: 100%;
+  max-width: 400px;
+  padding: 30px;
+  gap: 10px;
+  background: white;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 `;
 
 const LoginText = styled.p`
-  font-size: large;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: bold;
   text-align: center;
+  margin-bottom: 15px;
 `;
 
 const Login = () => {
@@ -86,9 +86,15 @@ const Login = () => {
           error={error}
           helperText={helperText}
         />
-        <Button variant="outlined" type="submit">
+        <Button
+          variant="contained"
+          type="submit"
+          fullWidth
+          sx={{ marginTop: '15px', padding: '10px' }}
+        >
           Login
         </Button>
+        <Link to="/register">Register?</Link>
       </LoginForm>
     </LoginWrapper>
   );

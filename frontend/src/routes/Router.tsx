@@ -3,6 +3,7 @@ import Home from '../home';
 import styled from 'styled-components';
 import Login from '../login/Login';
 import ProtectedRoute from './ProtectedRoute';
+import Register from '../login/Register';
 
 const Wrapper = styled.div`
   max-height: 100vh;
@@ -21,6 +22,7 @@ const Router = () => {
           }
         ></Route>
         <Route path="/login" element={<Login />}></Route>
+        <Route path="/register" element={<Register />} />
       </Routes>
     </Wrapper>
   );
