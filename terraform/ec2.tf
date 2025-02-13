@@ -22,15 +22,17 @@ resource "aws_instance" "go_backend" {
               # Create systemd service for the Go app
               cat <<EOT > /etc/systemd/system/universe-messenger.service
               [Unit]
-              Description=Universe Messenger API
+              Description=Universe Messenger Service
               After=network.target
 
               [Service]
-              EnvironmentFile=/home/ec2-user/.env.prod
               ExecStart=/home/ec2-user/universe-messenger
-              Restart=always
-              User=ec2-user
               WorkingDirectory=/home/ec2-user
+              User=root
+              Restart=always
+              RestartSec=5
+              StandardOutput=append:/var/log/universe-messenger.log
+              StandardError=append:/var/log/universe-messenger.log
 
               [Install]
               WantedBy=multi-user.target

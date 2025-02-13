@@ -13,12 +13,12 @@ func NewRouter() *gin.Engine {
 	router.Use(gin.Recovery())
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowOrigins:     []string{"http://universe-messenger-frontend.s3-website-us-east-1.amazonaws.com"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
-		MaxAge:           12 * time.Hour, // Set max age for preflight request caching
+		MaxAge:           12 * time.Hour,
 	}))
 
 	return router

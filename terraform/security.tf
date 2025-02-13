@@ -11,10 +11,19 @@ resource "aws_security_group_rule" "allow_ssh" {
 resource "aws_security_group_rule" "allow_api" {
   security_group_id = var.security_group_id
   type              = "ingress"
-  from_port         = 8080
-  to_port           = 8080
+  from_port         = 80
+  to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = ["${var.my_ip}/32"]
+}
+
+resource "aws_security_group_rule" "allow_public_api" {
+  security_group_id = var.security_group_id
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["52.216.0.0/15"]
 }
 
 

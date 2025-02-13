@@ -4,3 +4,4 @@ terraform/.env.prod
 terraform/.terraform
 terraform.tfstate
 terraform.tfstate.backup
+frontend/.env.production

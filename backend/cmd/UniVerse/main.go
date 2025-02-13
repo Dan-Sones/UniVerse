@@ -60,7 +60,7 @@ func main() {
 	routing := routes2.NewRoutes(&logger)
 	routing.InitializeRoutes(ctx, router, pool)
 
-	err = router.Run(":8080")
+	err = router.Run(":80")
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to start server")
 	}
