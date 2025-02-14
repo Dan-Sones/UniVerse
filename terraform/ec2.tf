@@ -2,7 +2,9 @@ resource "aws_instance" "go_backend" {
   ami                    = "ami-0c02fb55956c7d316"
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.go_backend_key.key_name
-  vpc_security_group_ids = [var.security_group_id]
+  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
+  subnet_id              = aws_subnet.private_subnet.id
+
 
   iam_instance_profile = var.profile
 
@@ -18,6 +20,7 @@ resource "aws_instance" "go_backend" {
 
               aws s3 cp s3://${aws_s3_bucket.go_binary_bucket.bucket}/.env.prod /home/ec2-user/.env.prod
 
+   
             
               # Create systemd service for the Go app
               cat <<EOT > /etc/systemd/system/universe-messenger.service
