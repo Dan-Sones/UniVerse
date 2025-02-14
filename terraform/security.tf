@@ -31,6 +31,15 @@ data "aws_instance" "go_backend" {
   instance_id = aws_instance.go_backend.id
 }
 
+resource "aws_security_group_rule" "allow_api_gateway_to_alb" {
+  security_group_id = aws_security_group.alb_sg.id
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["52.94.0.0/22"]
+}
+
 resource "aws_security_group_rule" "allow_postgres_from_ec2" {
   security_group_id        = var.security_group_id
   type                     = "ingress"
@@ -75,7 +84,7 @@ resource "aws_security_group" "bastion_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${var.my_ip}/32"] # Only allow SSH from your local machine
+    cidr_blocks = ["${var.my_ip}/32"]
   }
 
   egress {
@@ -106,7 +115,28 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
-# Allow Bastion to SSH into Private EC2
+resource "aws_security_group" "users_rds_sg" {
+  name        = "users-rds-security-group"
+  vpc_id      = aws_vpc.chat_vpc.id
+  description = "Security group for users RDS"
+
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ec2_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+
 resource "aws_security_group_rule" "allow_bastion_to_ec2" {
   type                     = "ingress"
   from_port                = 22
@@ -116,7 +146,7 @@ resource "aws_security_group_rule" "allow_bastion_to_ec2" {
   source_security_group_id = aws_security_group.bastion_sg.id
 }
 
-# Allow Bastion to send outbound SSH traffic to EC2
+
 resource "aws_security_group_rule" "bastion_egress_to_ec2" {
   type                     = "egress"
   from_port                = 22

@@ -3,7 +3,7 @@ resource "aws_instance" "go_backend" {
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.go_backend_key.key_name
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
-  subnet_id              = aws_subnet.private_subnet.id
+  subnet_id              = aws_subnet.private_subnet_1.id
 
 
   iam_instance_profile = var.profile

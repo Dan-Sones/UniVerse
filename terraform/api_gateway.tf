@@ -4,7 +4,6 @@ resource "aws_api_gateway_rest_api" "rest_api" {
 }
 
 
-# proxy resources automatically pass all requests through to EC2, potentially come back to this and define all routes manually
 resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
   parent_id   = aws_api_gateway_rest_api.rest_api.root_resource_id
@@ -12,10 +11,14 @@ resource "aws_api_gateway_resource" "proxy" {
 }
 
 resource "aws_api_gateway_method" "proxy_method" {
-  rest_api_id   = aws_api_gateway_rest_api.rest_api.id
-  resource_id   = aws_api_gateway_resource.proxy.id
-  http_method   = "ANY"
-  authorization = "NONE"
+  api_key_required = "false"
+  rest_api_id      = aws_api_gateway_rest_api.rest_api.id
+  resource_id      = aws_api_gateway_resource.proxy.id
+  http_method      = "ANY"
+  authorization    = "NONE"
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
 }
 
 
@@ -25,8 +28,10 @@ resource "aws_api_gateway_integration" "proxy_integration" {
   http_method             = aws_api_gateway_method.proxy_method.http_method
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${aws_lb.ec2_go_alb.dns_name}"
+  uri                     = "http://${aws_lb.ec2_go_alb.dns_name}/{proxy}"
   passthrough_behavior    = "WHEN_NO_MATCH"
+
+  request_parameters = { "integration.request.path.proxy" : "method.request.path.proxy" }
 }
 
 
@@ -45,10 +50,28 @@ resource "aws_api_gateway_deployment" "chat_api_deploy" {
   depends_on  = [aws_api_gateway_integration.proxy_integration]
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
 
+  triggers = {
+    redeployment = timestamp()
+  }
 }
 
 resource "aws_api_gateway_stage" "prod_stage" {
   stage_name    = "prod"
   rest_api_id   = aws_api_gateway_rest_api.rest_api.id
   deployment_id = aws_api_gateway_deployment.chat_api_deploy.id
+}
+
+
+resource "aws_api_gateway_rest_api_policy" "api_policy" {
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect    = "Allow",
+      Principal = "*",
+      Action    = "execute-api:Invoke",
+      Resource  = "arn:aws:execute-api:*:*:*"
+    }]
+  })
 }

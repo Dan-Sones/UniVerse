@@ -17,11 +17,18 @@ resource "aws_subnet" "public_subnet_2" {
 }
 
 # Private Subnet for EC2
-resource "aws_subnet" "private_subnet" {
+resource "aws_subnet" "private_subnet_1" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.3.0/24"
   availability_zone = "us-east-1a"
 }
+
+resource "aws_subnet" "private_subnet_2" {
+  vpc_id            = aws_vpc.chat_vpc.id
+  cidr_block        = "10.0.4.0/24"
+  availability_zone = "us-east-1b"
+}
+
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.chat_vpc.id
@@ -61,7 +68,7 @@ resource "aws_route_table" "private_rt" {
 
 # Associate the private route table with the private subnet
 resource "aws_route_table_association" "private_subnet_assoc" {
-  subnet_id      = aws_subnet.private_subnet.id
+  subnet_id      = aws_subnet.private_subnet_1.id
   route_table_id = aws_route_table.private_rt.id
 }
 
