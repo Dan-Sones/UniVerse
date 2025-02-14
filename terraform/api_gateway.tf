@@ -49,10 +49,6 @@ resource "aws_api_gateway_method_settings" "rate_limit" {
 resource "aws_api_gateway_deployment" "chat_api_deploy" {
   depends_on  = [aws_api_gateway_integration.proxy_integration]
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
-
-  triggers = {
-    redeployment = timestamp()
-  }
 }
 
 resource "aws_api_gateway_stage" "prod_stage" {
