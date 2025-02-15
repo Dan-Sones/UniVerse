@@ -14,7 +14,7 @@ const Router = () => {
     <Wrapper>
       <Routes>
         <Route
-          path="/chat"
+          path="/"
           element={
             <ProtectedRoute>
               <Home />

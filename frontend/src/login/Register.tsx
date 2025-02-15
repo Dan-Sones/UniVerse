@@ -46,7 +46,7 @@ const Register = () => {
 
   useEffect(() => {
     if (authenticated) {
-      navigate('/chat');
+      navigate('/');
     }
   }, [authenticated]);
 
