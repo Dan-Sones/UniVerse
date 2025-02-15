@@ -23,6 +23,7 @@ resource "aws_subnet" "private_subnet_1" {
   availability_zone = "us-east-1a"
 }
 
+# Private Subnet for RDS
 resource "aws_subnet" "private_subnet_2" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.4.0/24"
