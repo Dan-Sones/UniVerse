@@ -48,7 +48,7 @@ const Login = () => {
       setError(true);
       setHelperText('Invalid username or password');
     } else {
-      navigate('/');
+      navigate('/chat');
     }
   };
 

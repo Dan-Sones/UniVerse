@@ -1,8 +1,8 @@
-
-import ChatBar from "./components/ChatBar";
-import styled from "styled-components";
-import Chat from "./components/Chat";
-import { ChatType } from "./models/Chat";
+import ChatBar from './components/ChatBar';
+import styled from 'styled-components';
+import Chat from './components/Chat';
+import { ChatType } from './models/Chat';
+import SearchBar from './components/SearchArea';
 
 const MessageArea = styled.div`
   height: calc(100vh - 64px);
@@ -13,21 +13,18 @@ const MessageArea = styled.div`
 `;
 
 interface ChatAreaProps {
-    chat: ChatType;
-    addMessage: (message: string) => void;
+  chat: ChatType;
+  addMessage: (message: string) => void;
 }
 
-
 const ChatArea = (props: ChatAreaProps) => {
-
-
-    const {messages} = props.chat;
+  const { messages } = props.chat;
 
   return (
     <>
       <MessageArea>
         {messages.map((message) => {
-            return <Chat isSent={message.isSent} message={message.message}/>
+          return <Chat isSent={message.isSent} message={message.message} />;
         })}
       </MessageArea>
       <ChatBar addMessage={props.addMessage} />

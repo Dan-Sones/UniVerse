@@ -49,7 +49,7 @@ const Recent = styled.p`
   text-overflow: ellipsis;
 `;
 
-interface ChatPreviewProps {
+export interface ChatPreviewProps {
   profilePictureUrl: string;
   username: string;
   message: string;

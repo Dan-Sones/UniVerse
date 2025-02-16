@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router';
+import { Navigate, Route, Routes } from 'react-router';
 import Home from '../home';
 import styled from 'styled-components';
 import Login from '../login/Login';
@@ -13,8 +13,9 @@ const Router = () => {
   return (
     <Wrapper>
       <Routes>
+        <Route path="/*" element={<Navigate to={'/chat'} />}></Route>
         <Route
-          path="/"
+          path="/chat"
           element={
             <ProtectedRoute>
               <Home />
