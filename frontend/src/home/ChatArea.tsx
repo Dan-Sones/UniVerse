@@ -2,14 +2,22 @@ import ChatBar from './components/ChatBar';
 import styled from 'styled-components';
 import Chat from './components/Chat';
 import { ChatType } from './models/Chat';
-import SearchBar from './components/SearchArea';
+import ActiveChatHeader from './components/ActiveChatHeader';
 
 const MessageArea = styled.div`
-  height: calc(100vh - 64px);
+  height: 100%;
   padding-top: 15px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+`;
+
+const ChatAreaWrapper = styled.div`
+  flex-grow: 1;
+  display: flex;
+  min-height: 100%;
+  max-height: 100%;
+  flex-direction: column;
 `;
 
 interface ChatAreaProps {
@@ -21,14 +29,15 @@ const ChatArea = (props: ChatAreaProps) => {
   const { messages } = props.chat;
 
   return (
-    <>
+    <ChatAreaWrapper>
+      <ActiveChatHeader recepient={props.chat.recepient} />
       <MessageArea>
         {messages.map((message) => {
           return <Chat isSent={message.isSent} message={message.message} />;
         })}
       </MessageArea>
       <ChatBar addMessage={props.addMessage} />
-    </>
+    </ChatAreaWrapper>
   );
 };
 

@@ -8,13 +8,17 @@ const SearchBarWrapper = styled.div`
 
 interface SearchBarProps {
   onSearchIntention: VoidFunction;
+  searchValue: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const SearchBar = (props: SearchBarProps) => {
-  const { onSearchIntention } = props;
+  const { onSearchIntention, searchValue, onChange } = props;
   return (
     <SearchBarWrapper>
       <TextField
+        value={searchValue}
+        onChange={onChange}
         onClick={onSearchIntention}
         id="outlined-search"
         label="Search UniVerse"

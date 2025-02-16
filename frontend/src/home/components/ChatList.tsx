@@ -1,7 +1,9 @@
 import styled from 'styled-components';
-import ChatPreview, { ChatPreviewProps } from './ChatPreview';
+import ChatPreview from './ChatPreview';
 import SearchArea, { SearchResult } from './SearchArea';
-import { useState } from 'react';
+import { Dispatch, useState } from 'react';
+import { ChatRecepient, ChatType } from '../models/Chat';
+import { ChatPreview as ChatPreviewType } from '../models/Chat';
 
 const ChatListWrapper = styled.div`
   width: 30%;
@@ -19,11 +21,12 @@ const ChatListWrapper = styled.div`
 `;
 
 interface ChatListProps {
-  chatItems: Array<ChatPreviewProps>;
+  chatItems: Array<ChatPreviewType>;
+  setActiveChat: Dispatch<React.SetStateAction<ChatType>>;
 }
 
 const ChatList = (props: ChatListProps) => {
-  const { chatItems } = props;
+  const { chatItems, setActiveChat } = props;
   const [activeSearch, setActiveSearch] = useState(false);
 
   const onBackButtonPress = () => {
@@ -36,7 +39,20 @@ const ChatList = (props: ChatListProps) => {
 
   const onResultSelected = (result: SearchResult) => {
     setActiveSearch(false);
-    console.log(result);
+    setActiveChat({
+      recepient: {
+        username: result.username,
+        profilePictureUrl: '',
+      },
+      messages: [],
+    });
+  };
+
+  const onChatClick = (recepient: ChatRecepient) => {
+    setActiveChat({
+      messages: [],
+      recepient: recepient,
+    });
   };
 
   return (
@@ -50,13 +66,7 @@ const ChatList = (props: ChatListProps) => {
 
       {!activeSearch &&
         chatItems.map((chat) => {
-          return (
-            <ChatPreview
-              profilePictureUrl={''}
-              username={chat.username}
-              message={chat.message}
-            />
-          );
+          return <ChatPreview onClick={onChatClick} preview={chat} />;
         })}
     </ChatListWrapper>
   );

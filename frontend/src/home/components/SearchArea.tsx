@@ -8,6 +8,7 @@ const SearchAreaWrapper = styled.div`
   padding-top: 21px;
   padding-left: 15px;
   padding-right: 15px;
+  padding-bottom: 10px;
   display: flex;
   flex-direction: column;
 `;
@@ -47,6 +48,8 @@ const SearchArea = (props: SearchAreaProps) => {
     onResultSelected,
   } = props;
 
+  const [searchValue, setSearchValue] = useState<string>('');
+
   // Some API call will populate state
   const [searchResults, setSearchResults] = useState<Array<SearchResult>>([
     {
@@ -59,11 +62,24 @@ const SearchArea = (props: SearchAreaProps) => {
     },
   ]);
 
+  const onSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(event.target.value);
+  };
+
+  const onCancelSearch = () => {
+    onBackButtonPress();
+    setSearchValue('');
+  };
+
   return (
     <SearchAreaWrapper>
       <SearchAreaHeader>
-        {activeSearch && <BackButton onClick={onBackButtonPress} />}
-        <SearchBar onSearchIntention={onSearchIntention} />
+        {activeSearch && <BackButton onClick={onCancelSearch} />}
+        <SearchBar
+          onSearchIntention={onSearchIntention}
+          onChange={onSearchInput}
+          searchValue={searchValue}
+        />
       </SearchAreaHeader>
       {activeSearch && (
         <SearchResultsWrapper>

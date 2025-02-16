@@ -9,6 +9,16 @@ export type ChatType = {
 }
 
 export type ChatRecepient = {
-    name: string;
-    profilePictureURL: string;
+    username: string;
+    profilePictureUrl: string;
+}
+
+export type ChatPreview = {
+    recepient: ChatRecepient;
+    recentMessage: RecentMessage
+}
+
+export type RecentMessage = {
+    message: string;
+    timestamp: string;
 }
