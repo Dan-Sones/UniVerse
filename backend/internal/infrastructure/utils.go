@@ -1,6 +1,8 @@
 package infrastructure
 
-import "os"
+import (
+	"os"
+)
 
 func GetURL() string {
 	return os.Getenv("URL")
