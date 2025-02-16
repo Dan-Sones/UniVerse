@@ -3,6 +3,7 @@ package controllers
 import (
 	"backend/internal/dtos"
 	appErr "backend/internal/errors"
+	"backend/internal/infrastructure"
 	"backend/internal/services"
 	"backend/internal/utils"
 	"context"
@@ -73,15 +74,18 @@ func (uc *UserController) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", token, 3600*24, "/", "localhost", false, true)
+	c.Writer.Header().Set("Access-Control-Allow-Origin", infrastructure.GetURL())
+	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+	c.SetCookie("token", token, 3600*24, "/", "", true, true)
+	c.Writer.Header().Set("Set-Cookie", fmt.Sprintf("token=%s; Path=/; Max-Age=%d; HttpOnly; Secure; SameSite=None", token, 3600*24))
 	c.JSON(http.StatusOK, gin.H{"message:": "login successful"})
 }
 
 func (uc *UserController) Logout(c *gin.Context) {
-	c.SetCookie("token", "", -1, "/", "localhost", false, true)
+	c.SetCookie("token", "", -1, "/", "", true, true) // Secure: true, HttpOnly: true
+	c.Writer.Header().Set("Set-Cookie", "token=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=None")
 	c.JSON(http.StatusOK, gin.H{})
 }
-
 func (uc *UserController) GetProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {

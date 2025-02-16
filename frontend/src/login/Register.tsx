@@ -37,7 +37,7 @@ type RegisterInputs = {
   email: string;
   username: string;
   password: string;
-  confirmPassword: string;
+  confirm_password: string;
 };
 
 const Register = () => {
@@ -46,7 +46,7 @@ const Register = () => {
 
   useEffect(() => {
     if (authenticated) {
-      navigate('/chat');
+      navigate('/');
     }
   }, [authenticated]);
 
@@ -142,7 +142,7 @@ const Register = () => {
           />
 
           <Controller
-            name="confirmPassword"
+            name="confirm_password"
             control={control}
             rules={{
               required: 'Confirm Password is required',
@@ -155,8 +155,8 @@ const Register = () => {
                 type="password"
                 label="Confirm Password"
                 fullWidth
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword?.message}
+                error={!!errors.confirm_password}
+                helperText={errors.confirm_password?.message}
                 margin="dense"
               />
             )}

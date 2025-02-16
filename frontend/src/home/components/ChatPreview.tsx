@@ -1,5 +1,5 @@
-import { Avatar } from "@mui/material";
-import styled from "styled-components";
+import { Avatar } from '@mui/material';
+import styled from 'styled-components';
 
 const ChatPreviewContainer = styled.div`
   height: 75px;
@@ -11,7 +11,7 @@ const ChatPreviewContainer = styled.div`
   gap: 10px;
 
   border-bottom: 1px solid lightgray;
-  
+
   @media (max-width: 500px) {
     flex-direction: column;
     height: auto;
@@ -55,11 +55,16 @@ interface ChatPreviewProps {
   message: string;
 }
 
-const ChatPreview = ({ profilePictureUrl, username, message }: ChatPreviewProps) => {
+const ChatPreview = ({ username, message }: ChatPreviewProps) => {
   return (
     <ChatPreviewContainer>
       <AvatarContainer>
-        <Avatar alt={username} src={"https://pub-1de51ae1e68144d78f7c582e1dda3ab1.r2.dev/clh8n0i2200wsmi08eyobfu35/7ee08a5b-8158-464b-b5da-d183e0e64831.webp"} />
+        <Avatar
+          alt={username}
+          src={
+            'https://pub-1de51ae1e68144d78f7c582e1dda3ab1.r2.dev/clh8n0i2200wsmi08eyobfu35/7ee08a5b-8158-464b-b5da-d183e0e64831.webp'
+          }
+        />
       </AvatarContainer>
       <ChatDetails>
         <Name>{username}</Name>
