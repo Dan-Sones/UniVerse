@@ -11,7 +11,7 @@ export type ChatType = {
 export type ChatRecepient = {
   username: string;
   profilePictureUrl: string;
-  id: string;
+  id: number;
 };
 
 export type ChatPreview = {
@@ -25,7 +25,7 @@ export type RecentMessage = {
 };
 
 export type SearchUser = {
-  id: string;
+  id: number;
   username: string;
   profilePictureUrl: string;
 };

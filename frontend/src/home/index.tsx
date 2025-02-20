@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ChatArea from './ChatArea';
 import styled from 'styled-components';
 import { ChatPreview, ChatType } from './models/Chat';
 import ChatList from './components/ChatList';
+import { useAuth } from '../context/AuthContext';
+import useWebSocket from '../hooks/UseWebSocket';
 
 const HomeWrapper = styled.div`
   display: flex;
@@ -20,7 +22,7 @@ const chatItems: Array<ChatPreview> = [
     recepient: {
       username: 'john_doe',
       profilePictureUrl: 'https://example.com/profiles/john_doe.jpg',
-      id: '1',
+      id: 1,
     },
     recentMessage: {
       message: 'Hey, how are you?',
@@ -34,30 +36,15 @@ const Home = () => {
     recepient: {
       username: '',
       profilePictureUrl: '',
-      id: '1',
+      id: 1,
     },
     messages: [],
   });
 
-  const addMessage = (message: string) => {
-    setActiveChat((prevChat) => {
-      return {
-        ...prevChat,
-        messages: [
-          ...prevChat.messages,
-          {
-            message: message,
-            isSent: true,
-          },
-        ],
-      };
-    });
-  };
-
   return (
     <HomeWrapper>
       <ChatList chatItems={chatItems} setActiveChat={setActiveChat} />
-      <ChatArea addMessage={addMessage} chat={activeChat} />
+      <ChatArea chat={activeChat} />
     </HomeWrapper>
   );
 };

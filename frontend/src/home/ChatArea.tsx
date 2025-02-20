@@ -3,6 +3,9 @@ import styled from 'styled-components';
 import Chat from './components/Chat';
 import { ChatType } from './models/Chat';
 import ActiveChatHeader from './components/ActiveChatHeader';
+import useWebSocket from '../hooks/UseWebSocket';
+import { useAuth } from '../context/AuthContext';
+import { OutboundMessage } from '../models/socket';
 
 const MessageArea = styled.div`
   height: 100%;
@@ -22,11 +25,33 @@ const ChatAreaWrapper = styled.div`
 
 interface ChatAreaProps {
   chat: ChatType;
-  addMessage: (message: string) => void;
 }
 
 const ChatArea = (props: ChatAreaProps) => {
-  const { messages } = props.chat;
+  const { ws, messages } = useWebSocket();
+
+  const { chat } = props;
+
+  const { user } = useAuth();
+
+  const isSent = (fromId: number) => {
+    if (user) {
+      return user?.id === fromId;
+    }
+    return false;
+  };
+
+  const sendMessage = (message: string) => {
+    if (ws && ws.readyState === WebSocket.OPEN && user) {
+      const toSend: OutboundMessage = {
+        type: 'chat',
+        from: user.id,
+        to: chat.recepient.id,
+        content: message,
+      };
+      ws.send(JSON.stringify(toSend));
+    }
+  };
 
   return (
     <ChatAreaWrapper>
@@ -35,14 +60,14 @@ const ChatArea = (props: ChatAreaProps) => {
         {messages.map((message) => {
           return (
             <Chat
-              isSent={message.isSent}
-              message={message.message}
-              key={message.message}
+              isSent={isSent(message.from)}
+              message={message.content}
+              key={message.content}
             />
           );
         })}
       </MessageArea>
-      <ChatBar addMessage={props.addMessage} />
+      <ChatBar addMessage={sendMessage} />
     </ChatAreaWrapper>
   );
 };
