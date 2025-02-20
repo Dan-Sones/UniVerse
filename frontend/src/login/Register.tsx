@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { axiosClient } from '../api/axiosClient';
+import { useRegister } from '../hooks/UseRegister';
 
 const RegisterWrapper = styled.div`
   display: flex;
@@ -37,11 +38,12 @@ type RegisterInputs = {
   email: string;
   username: string;
   password: string;
-  confirm_password: string;
+  confirmPassword: string;
 };
 
 const Register = () => {
   const { authenticated } = useAuth();
+  const { mutate: registerMutate } = useRegister();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,14 +60,11 @@ const Register = () => {
   } = useForm<RegisterInputs>();
 
   const Register = async (data: RegisterInputs) => {
-    try {
-      const response = await axiosClient.post('/users/signup', data);
-      if (response.status === 200) {
+    registerMutate(data, {
+      onSuccess: () => {
         navigate('/login');
-      }
-    } catch (error) {
-      console.log('something went wrong');
-    }
+      },
+    });
   };
 
   const onSubmit: SubmitHandler<RegisterInputs> = async (data) => {
@@ -142,7 +141,7 @@ const Register = () => {
           />
 
           <Controller
-            name="confirm_password"
+            name="confirmPassword"
             control={control}
             rules={{
               required: 'Confirm Password is required',
@@ -155,8 +154,8 @@ const Register = () => {
                 type="password"
                 label="Confirm Password"
                 fullWidth
-                error={!!errors.confirm_password}
-                helperText={errors.confirm_password?.message}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword?.message}
                 margin="dense"
               />
             )}
