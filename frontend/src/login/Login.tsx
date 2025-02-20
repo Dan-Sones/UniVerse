@@ -51,8 +51,8 @@ const Login = () => {
         password,
       },
       {
-        onSuccess: () => {
-          refreshAuth();
+        onSuccess: async () => {
+          await refreshAuth();
           navigate('/chat');
         },
         onError: () => {

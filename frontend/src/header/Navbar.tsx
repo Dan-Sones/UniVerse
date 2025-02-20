@@ -9,7 +9,6 @@ import {
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { useLogout } from '../hooks/UseLogout';
-import { queryClient } from '../api/queryClient';
 
 const NavBar = () => {
   const navigate = useNavigate();

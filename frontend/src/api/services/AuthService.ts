@@ -1,4 +1,5 @@
 import { LoginPayload } from '../../models/login';
+import { RegisterPayload } from '../../models/register';
 import { User } from '../../models/user';
 import { request } from '../axiosClient';
 import { AuthEndpoints } from '../endpoints';
@@ -9,6 +10,15 @@ export default class AuthService {
       url: AuthEndpoints.checkAuth(),
       method: 'get',
     });
+  };
+  public static readonly signUp = (payload: RegisterPayload): Promise<void> => {
+    return request(
+      {
+        url: AuthEndpoints.signUp(),
+        method: 'post',
+      },
+      payload
+    );
   };
   public static readonly login = (payload: LoginPayload): Promise<void> => {
     return request(
