@@ -36,15 +36,9 @@ const SearchResultsWrapper = styled.div`
 interface SearchAreaProps {
   onBackButtonPress: VoidFunction;
   onSearchIntention: VoidFunction;
-  onResultSelected: (data: SearchResult) => void;
+  onResultSelected: (data: SearchUser) => void;
   activeSearch: boolean;
 }
-
-export type SearchResult = {
-  profilePictureUrl: string;
-  username: string;
-};
-
 const SEARCH_QUERY_KEY = 'SEARCH_QUERY_KEY';
 
 const SearchArea = (props: SearchAreaProps) => {

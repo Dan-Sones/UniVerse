@@ -11,6 +11,7 @@ export type ChatType = {
 export type ChatRecepient = {
   username: string;
   profilePictureUrl: string;
+  id: string;
 };
 
 export type ChatPreview = {
