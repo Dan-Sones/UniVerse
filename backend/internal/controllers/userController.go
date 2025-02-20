@@ -22,7 +22,7 @@ type UserController struct {
 }
 
 func NewUserController(ctx context.Context, db *pgxpool.Pool, logger *zerolog.Logger) *UserController {
-	userService := services.NewUserService(ctx, db)
+	userService := services.NewUserService(ctx, db, logger)
 	return &UserController{service: userService, ctx: ctx, Logger: logger}
 }
 
@@ -127,5 +127,17 @@ func (uc *UserController) Me(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"user": me})
+}
+
+func (uc *UserController) SearchUsers(c *gin.Context) {
+	searchTerm := c.Query("q")
+
+	users, err := uc.service.SearchUsers(c.Request.Context(), searchTerm)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{Error: "Failed to search users"})
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
 
 }

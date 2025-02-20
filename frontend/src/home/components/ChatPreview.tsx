@@ -1,22 +1,25 @@
 import { Avatar } from '@mui/material';
+import { useState } from 'react';
 import styled from 'styled-components';
+import { ChatPreview as ChatPreviewType, ChatRecepient } from '../models/Chat';
+import { dateToAgoString } from '../chatHelpers';
 
-const ChatPreviewContainer = styled.div`
+const ChatPreviewContainer = styled.div<{ hover?: boolean }>`
   height: 75px;
   display: flex;
   align-items: center;
-  padding-top: 10px;
-  padding-bottom: 10px;
+
   padding-left: 15px;
   gap: 10px;
-
-  border-bottom: 1px solid lightgray;
 
   @media (max-width: 500px) {
     flex-direction: column;
     height: auto;
     align-items: flex-start;
   }
+
+  background-color: ${(p) => (p.hover ? 'rgba(236, 236, 236, 0.75)' : '')};
+  cursor: ${(p) => (p.hover ? 'pointer' : '')};
 `;
 
 const AvatarContainer = styled.div`
@@ -49,26 +52,45 @@ const Recent = styled.p`
   text-overflow: ellipsis;
 `;
 
-interface ChatPreviewProps {
-  profilePictureUrl: string;
-  username: string;
-  message: string;
+export interface ChatPreviewProps {
+  preview: ChatPreviewType;
+  onClick: (recepient: ChatRecepient) => void;
 }
 
-const ChatPreview = ({ username, message }: ChatPreviewProps) => {
+const ChatPreview = (props: ChatPreviewProps) => {
+  const [hover, setHover] = useState(false);
+
+  const { preview, onClick } = props;
+
+  const handleClick = () => {
+    onClick(preview.recepient);
+  };
+
   return (
-    <ChatPreviewContainer>
+    <ChatPreviewContainer
+      onClick={handleClick}
+      hover={hover}
+      onMouseOver={() => {
+        setHover(true);
+      }}
+      onMouseLeave={() => {
+        setHover(false);
+      }}
+    >
       <AvatarContainer>
         <Avatar
-          alt={username}
+          alt={preview.recepient.username}
           src={
             'https://pub-1de51ae1e68144d78f7c582e1dda3ab1.r2.dev/clh8n0i2200wsmi08eyobfu35/7ee08a5b-8158-464b-b5da-d183e0e64831.webp'
           }
         />
       </AvatarContainer>
       <ChatDetails>
-        <Name>{username}</Name>
-        <Recent>{message} • 10m </Recent>
+        <Name>{preview.recepient.username}</Name>
+        <Recent>
+          {preview.recentMessage.message} •{' '}
+          {dateToAgoString(preview.recentMessage.timestamp)}{' '}
+        </Recent>
       </ChatDetails>
     </ChatPreviewContainer>
   );

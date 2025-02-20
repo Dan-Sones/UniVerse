@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute = (props: ProtectedRouteProps) => {
   const { children } = props;
   const { authenticated, loading } = useAuth();
-  
+
   if (loading) {
     return <h1>Loading...</h1>;
   }

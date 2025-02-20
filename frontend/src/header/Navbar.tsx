@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
+import SearchBar from '../home/components/SearchArea';
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -19,16 +20,18 @@ const NavBar = () => {
   };
 
   const handlePressLogout = async () => {
-    console.log('logging out')
-    logout()
-    navigate('/login')
-  }
+    console.log('logging out');
+    logout();
+    navigate('/login');
+  };
 
   const renderLoginLogoutButton = () => {
     if (authenticated == false) {
-      return (<Button color="inherit" onClick={handlePressLogin}>
-        Login
-      </Button>)
+      return (
+        <Button color="inherit" onClick={handlePressLogin}>
+          Login
+        </Button>
+      );
     } else {
       return (
         <Button color="inherit" onClick={handlePressLogout}>
