@@ -22,3 +22,9 @@ export type RecentMessage = {
   message: string;
   timestamp: string;
 };
+
+export type SearchUser = {
+  id: string;
+  username: string;
+  profilePictureUrl: string;
+};

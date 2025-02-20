@@ -5,7 +5,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { User } from '../global/models/user';
+import { User } from '../models/user';
 import { AxiosInstance } from 'axios';
 
 const AuthContext = createContext<AuthContextType | null>(null);

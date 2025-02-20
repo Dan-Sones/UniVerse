@@ -4,7 +4,7 @@ import { TextField, Button } from '@mui/material';
 import styled from 'styled-components';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import { axiosClient } from '../global/clients/axios';
+import { axiosClient } from '../api/axiosClient';
 
 const RegisterWrapper = styled.div`
   display: flex;
