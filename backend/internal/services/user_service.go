@@ -18,9 +18,9 @@ type UserService struct {
 	logger *zerolog.Logger
 }
 
-func NewUserService(ctx context.Context, db *pgxpool.Pool) *UserService {
+func NewUserService(ctx context.Context, db *pgxpool.Pool, logger *zerolog.Logger) *UserService {
 	userRepo := repositories.NewUserRepository(db)
-	return &UserService{repo: userRepo, ctx: ctx}
+	return &UserService{repo: userRepo, ctx: ctx, logger: logger}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, request dtos.CreateUserRequest) (*users.User, error) {
@@ -81,4 +81,15 @@ func (s *UserService) Me(ctx context.Context, userId float64) (*dtos.Me, error) 
 		Id:       user.ID,
 	}, nil
 
+}
+
+func (s *UserService) SearchUsers(ctx context.Context, searchString string) ([]*users.SearchUser, error) {
+
+	result, err := s.repo.GetUsersBySearchQuery(ctx, searchString)
+	if err != nil {
+		s.logger.Error().Err(err).Msg("uh oh")
+		return nil, appErr.ErrInternal
+	}
+
+	return result, nil
 }

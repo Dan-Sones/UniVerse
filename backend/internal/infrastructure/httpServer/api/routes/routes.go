@@ -33,18 +33,17 @@ func (r *routes) InitializeRoutes(ctx context.Context, router *gin.Engine, db *p
 
 	userController := controllers.NewUserController(ctx, db, r.Logger)
 
-	users := public.Group("/users")
+	publicUsers := public.Group("/users")
 	{
-		users.POST("/signup", userController.CreateUser)
-		users.POST("/login", userController.Login)
-		users.POST("/logout", userController.Logout)
-		users.GET("/me", userController.Me)
+		publicUsers.POST("/signup", userController.CreateUser)
+		publicUsers.POST("/login", userController.Login)
+		publicUsers.POST("/logout", userController.Logout)
 	}
 
-	protected := public.Group("/users")
-	protected.Use(middleware.JWTMiddleware())
+	privateUsers := public.Group("/users")
+	privateUsers.Use(middleware.JWTMiddleware())
 	{
-		protected.GET("/profile", userController.GetProfile)
+		privateUsers.GET("/me", userController.Me)
+		privateUsers.GET("/search", userController.SearchUsers)
 	}
-
 }
