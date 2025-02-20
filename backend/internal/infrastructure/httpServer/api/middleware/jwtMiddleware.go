@@ -26,15 +26,15 @@ func JWTMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		userID, ok := claims["user_id"]
+		userID, ok := claims["user_id"].(float64)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "Invalid token claims"})
 			return
 		}
 
-		c.Set("user_id", userID)
+		c.Set("user_id", int64(userID))
 
-		ctx := context.WithValue(c.Request.Context(), "user_id", userID)
+		ctx := context.WithValue(c.Request.Context(), "user_id", int64(userID))
 		c.Request = c.Request.WithContext(ctx)
 
 		c.Next()

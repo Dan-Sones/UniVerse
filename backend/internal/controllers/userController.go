@@ -115,7 +115,7 @@ func (uc *UserController) Me(c *gin.Context) {
 		return
 	}
 
-	me, err := uc.service.Me(c.Request.Context(), userID)
+	me, err := uc.service.Me(c.Request.Context(), int64(userID))
 	if errors.Is(err, appErr.ErrNotFound) {
 		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "User not found"})
 		return

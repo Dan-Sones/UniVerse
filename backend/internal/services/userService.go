@@ -68,9 +68,9 @@ func (s *UserService) Login(ctx context.Context, request dtos.LoginDTO) (string,
 	return token, nil
 }
 
-func (s *UserService) Me(ctx context.Context, userId float64) (*dtos.Me, error) {
+func (s *UserService) Me(ctx context.Context, userId int64) (*dtos.Me, error) {
 
-	user, err := s.repo.GetUserByID(ctx, int64(userId))
+	user, err := s.repo.GetUserByID(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
