@@ -8,14 +8,14 @@ import (
 
 type InboundMessage struct {
 	Type    string `json:"type"`
-	From    string `json:"from"`
-	To      string `json:"to"`
+	From    int64  `json:"from"`
+	To      int64  `json:"to"`
 	Content string `json:"content"`
 }
 
 type Client struct {
 	Conn   *websocket.Conn
-	UserID string
+	UserID int64
 	Send   chan []byte
 	Hub    *Hub
 }

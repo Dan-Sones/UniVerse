@@ -43,7 +43,7 @@ func (r *routes) InitializeRoutes(ctx context.Context, router *gin.Engine, db *p
 	webSockets := router.Group("/ws")
 	webSockets.Use(middleware.JWTMiddleware())
 	{
-		webSockets.GET("/", func(c *gin.Context) {
+		webSockets.GET("", func(c *gin.Context) {
 			ws.ServeWS(hub, c)
 		})
 	}

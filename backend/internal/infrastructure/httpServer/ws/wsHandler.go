@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"log"
@@ -24,11 +23,11 @@ func ServeWS(hub *Hub, c *gin.Context) {
 
 	context := c.Request.Context()
 
-	userID := context.Value("user_id")
+	userID := context.Value("user_id").(int64)
 
 	// Create a client and store it in the 'hub'
 	client := &Client{
-		UserID: fmt.Sprintf("%d", userID),
+		UserID: userID,
 		Conn:   conn,
 		Send:   make(chan []byte, 256),
 		Hub:    hub,

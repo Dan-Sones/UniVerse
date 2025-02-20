@@ -13,7 +13,7 @@ const useWebSocket = () => {
   const isMounted = useRef(true);
 
   useEffect(() => {
-    isMounted.current = true; // Track mount state
+    isMounted.current = true;
 
     if (!authenticated) {
       console.warn('Not authenticated, skipping WebSocket connection.');

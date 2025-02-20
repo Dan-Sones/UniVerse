@@ -126,7 +126,7 @@ func (uc *UserController) Me(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": me})
+	c.JSON(http.StatusOK, me)
 }
 
 func (uc *UserController) SearchUsers(c *gin.Context) {

@@ -8,7 +8,7 @@ import (
 )
 
 type Hub struct {
-	Clients    map[string]*Client
+	Clients    map[int64]*Client
 	Broadcast  chan InboundMessage
 	Register   chan *Client
 	Unregister chan *Client
@@ -17,15 +17,15 @@ type Hub struct {
 
 type OutboundMessage struct {
 	Type    string `json:"type"`
-	From    string `json:"from"`
-	To      string `json:"to"`
+	From    int64  `json:"from"`
+	To      int64  `json:"to"`
 	Content string `json:"content"`
 	Time    string `json:"time"`
 }
 
 func NewHub() *Hub {
 	return &Hub{
-		Clients:    make(map[string]*Client),
+		Clients:    make(map[int64]*Client),
 		Broadcast:  make(chan InboundMessage),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
