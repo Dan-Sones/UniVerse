@@ -38,7 +38,6 @@ func loadEnv() {
 }
 
 func main() {
-	ctx := context.Background()
 
 	loadEnv()
 
@@ -51,6 +50,18 @@ func main() {
 	}
 	defer pool.Close()
 
+	endpoint := os.Getenv("DYNAMO_ENDPOINT")
+
+	if endpoint == "" {
+		endpoint = "http://localhost:8000"
+	}
+
+	dynamoClient, err := db.NewDynamoDBClient(db.GetLocalConfiguration(endpoint))
+
+	if err != nil {
+		log.Fatalf("Failed to connect to DynamoDB: %v", err)
+	}
+
 	err = runInitScript(pool)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
@@ -58,7 +69,7 @@ func main() {
 
 	router := routes2.NewRouter()
 	routing := routes2.NewRoutes(&logger)
-	routing.InitializeRoutes(ctx, router, pool)
+	routing.InitializeRoutes(router, pool, dynamoClient)
 
 	err = router.Run(":80")
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"backend/internal/controllers"
 	"backend/internal/infrastructure/httpServer/api/middleware"
 	"backend/internal/infrastructure/httpServer/ws"
-	"context"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
@@ -15,7 +15,7 @@ type routes struct {
 }
 
 type Routes interface {
-	InitializeRoutes(ctx context.Context, router *gin.Engine, db *pgxpool.Pool)
+	InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client)
 }
 
 func NewRoutes(logger *zerolog.Logger) Routes {
@@ -24,9 +24,9 @@ func NewRoutes(logger *zerolog.Logger) Routes {
 	}
 }
 
-func (r *routes) InitializeRoutes(ctx context.Context, router *gin.Engine, db *pgxpool.Pool) {
+func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client) {
 
-	hub := ws.NewHub()
+	hub := ws.NewHub(dynamoClient, r.Logger)
 	go hub.Run()
 
 	public := router.Group("/api")
@@ -36,7 +36,7 @@ func (r *routes) InitializeRoutes(ctx context.Context, router *gin.Engine, db *p
 		})
 	}
 
-	userController := controllers.NewUserController(ctx, db, r.Logger)
+	userController := controllers.NewUserController(pgPool, r.Logger)
 
 	// TODO: Secure somehow
 

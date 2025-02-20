@@ -14,13 +14,12 @@ import (
 
 type UserService struct {
 	repo   repositories.UserRepository
-	ctx    context.Context
 	logger *zerolog.Logger
 }
 
-func NewUserService(ctx context.Context, db *pgxpool.Pool, logger *zerolog.Logger) *UserService {
-	userRepo := repositories.NewUserRepository(db)
-	return &UserService{repo: userRepo, ctx: ctx, logger: logger}
+func NewUserService(db *pgxpool.Pool, logger *zerolog.Logger) *UserService {
+	userRepo := repositories.NewUserRepositoryPGImpl(db)
+	return &UserService{repo: userRepo, logger: logger}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, request dtos.CreateUserRequest) (*users.User, error) {

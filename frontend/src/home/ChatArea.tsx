@@ -56,7 +56,7 @@ const ChatArea = (props: ChatAreaProps) => {
     if (ws && ws.readyState === WebSocket.OPEN && user) {
       const toSend: OutboundMessage = {
         type: 'chat',
-        from: user.id
+        from: user.id,
         to: chat.recepient.id,
         content: message,
       };

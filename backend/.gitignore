@@ -7,3 +7,4 @@
 *.goarch
 .env.dev
 .env.prod
+docker/dynamodb

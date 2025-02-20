@@ -21,9 +21,9 @@ type UserController struct {
 	service *services.UserService
 }
 
-func NewUserController(ctx context.Context, db *pgxpool.Pool, logger *zerolog.Logger) *UserController {
-	userService := services.NewUserService(ctx, db, logger)
-	return &UserController{service: userService, ctx: ctx, Logger: logger}
+func NewUserController(db *pgxpool.Pool, logger *zerolog.Logger) *UserController {
+	userService := services.NewUserService(db, logger)
+	return &UserController{service: userService, Logger: logger}
 }
 
 func (uc *UserController) CreateUser(c *gin.Context) {
