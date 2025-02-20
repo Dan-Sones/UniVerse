@@ -1,24 +1,44 @@
-module.exports = {
-  env: {
-    browser: true,
-    node: true,
-    es2021: true,
+import js from '@eslint/js';
+import react from 'eslint-plugin-react';
+import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import prettier from 'eslint-plugin-prettier';
+
+export default [
+  {
+    ignores: [
+      '**/dev/*',
+      '**/dist/*',
+      '**/tests/*',
+      'tsconfig.json',
+      'vite.config.ts',
+    ],
   },
-  extends: [
-    'eslint:recommended',
-    'plugin:react/recommended',
-    'plugin:prettier/recommended',
-  ],
-  plugins: ['react', 'prettier'],
-  rules: {
-    'prettier/prettier': 'error', // Enforce Prettier formatting as ESLint errors
-    'react/prop-types': 'off', // Disable prop-types if using TypeScript
-    'no-console': 'warn', // Warn on console.log usage
-    'react/react-in-jsx-scope': 'off', // Not needed for React 17+
-  },
-  settings: {
-    react: {
-      version: 'detect', // Automatically detect React version
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+    },
+    plugins: {
+      react,
+      '@typescript-eslint': tsPlugin,
+      prettier,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...tsPlugin.configs.recommended.rules,
+      ...react.configs.recommended.rules,
+      'prettier/prettier': 'error',
+      'react/prop-types': 'off',
+      'no-console': 'warn',
+      'react/react-in-jsx-scope': 'off',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      'no-undef': 'off',
+    },
+    settings: {
+      react: {
+        version: 'detect',
+      },
     },
   },
-};
+];

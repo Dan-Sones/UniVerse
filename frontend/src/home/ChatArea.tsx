@@ -33,7 +33,13 @@ const ChatArea = (props: ChatAreaProps) => {
       <ActiveChatHeader recepient={props.chat.recepient} />
       <MessageArea>
         {messages.map((message) => {
-          return <Chat isSent={message.isSent} message={message.message} />;
+          return (
+            <Chat
+              isSent={message.isSent}
+              message={message.message}
+              key={message.message}
+            />
+          );
         })}
       </MessageArea>
       <ChatBar addMessage={props.addMessage} />

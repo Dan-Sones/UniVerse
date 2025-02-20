@@ -66,7 +66,13 @@ const ChatList = (props: ChatListProps) => {
 
       {!activeSearch &&
         chatItems.map((chat) => {
-          return <ChatPreview onClick={onChatClick} preview={chat} />;
+          return (
+            <ChatPreview
+              onClick={onChatClick}
+              preview={chat}
+              key={chat.recentMessage.message}
+            />
+          );
         })}
     </ChatListWrapper>
   );

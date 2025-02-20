@@ -23,21 +23,25 @@ interface ChatBarProps {
 const ChatBar = (props: ChatBarProps) => {
   const { addMessage } = props;
 
-  const [messageToSend, setMessageToSend] = useState<string |  null>();
+  const [messageToSend, setMessageToSend] = useState<string | null>();
 
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     setMessageToSend(event.target.value);
   };
 
   const handleSendPress = () => {
-    setMessageToSend('')
-    if (messageToSend != null && messageToSend != undefined && messageToSend !== '') {
+    setMessageToSend('');
+    if (
+      messageToSend != null &&
+      messageToSend != undefined &&
+      messageToSend !== ''
+    ) {
       addMessage(messageToSend);
     }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       event.preventDefault();
       handleSendPress();
     }

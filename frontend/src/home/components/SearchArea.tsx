@@ -88,6 +88,7 @@ const SearchArea = (props: SearchAreaProps) => {
               <SearchResultRow
                 data={result}
                 onClick={onResultSelected}
+                key={result.username}
               ></SearchResultRow>
             );
           })}
