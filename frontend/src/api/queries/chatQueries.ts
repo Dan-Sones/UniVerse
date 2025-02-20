@@ -1,5 +1,5 @@
 import { SearchUser } from '../../home/models/Chat';
-import ChatService from '../services/ChatService';
+import ChatService from '../services/chatService';
 
 export default class ChatQueryMethods {
   public static readonly searchUser = async (

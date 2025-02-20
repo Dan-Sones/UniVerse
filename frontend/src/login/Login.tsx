@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { TextField, Button } from '@mui/material';
 import styled from 'styled-components';
 import { Link, useNavigate } from 'react-router';
+import { useLogin } from '../hooks/UseLogin';
 
 const LoginWrapper = styled.div`
   display: flex;
@@ -33,7 +34,8 @@ const LoginText = styled.p`
 `;
 
 const Login = () => {
-  const { login } = useAuth();
+  const { mutate: loginMutate } = useLogin();
+  const { refreshAuth } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -43,13 +45,22 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await login(email, password);
-    if (!success) {
-      setError(true);
-      setHelperText('Invalid username or password');
-    } else {
-      navigate('/chat');
-    }
+    loginMutate(
+      {
+        email,
+        password,
+      },
+      {
+        onSuccess: () => {
+          refreshAuth();
+          navigate('/chat');
+        },
+        onError: () => {
+          setError(true);
+          setHelperText('Invalid username or password');
+        },
+      }
+    );
   };
 
   const handleEmailInput = (event: React.ChangeEvent<HTMLInputElement>) => {

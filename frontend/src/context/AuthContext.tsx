@@ -1,12 +1,7 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, ReactNode, useContext, useMemo } from 'react';
 import { User } from '../models/user';
-import { AxiosInstance } from 'axios';
+import { useQuery } from '@tanstack/react-query';
+import AuthQueryMethods from '../api/queries/AuthQueries';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -20,67 +15,41 @@ interface AuthContextType {
   authenticated: boolean;
   user: User | undefined;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: VoidFunction;
+  refreshAuth: () => void;
 }
 
 interface AuthProviderProps {
   children: ReactNode;
-  axiosClient: AxiosInstance;
 }
 
 export const AuthContextProvider = (props: AuthProviderProps) => {
-  const { children, axiosClient } = props;
-  const [authenticated, setAuthenticated] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [user, setUser] = useState<User | undefined>();
+  const { children } = props;
 
-  const checkAuth = async () => {
-    try {
-      const response = await axiosClient.get('/users/me');
-      if (response.status === 200) {
-        setUser(response.data.user);
-        setAuthenticated(true);
-      } else {
-        setAuthenticated(false);
-        setUser(undefined);
-      }
-    } catch (error) {
-      setAuthenticated(false);
-      setUser(undefined);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    data: user,
+    isLoading,
+    refetch: refreshAuth,
+    isError,
+  } = useQuery({
+    queryKey: ['AUTH'],
+    retry: false,
+    queryFn: () => AuthQueryMethods.checkAuth(),
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      await axiosClient.post('/users/login', { email, password });
-      await checkAuth();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await axiosClient.post('/users/logout');
-      await checkAuth();
-      setUser(undefined);
-      setAuthenticated(false);
-    } catch (error) {
-      // handle some error
-    }
-  };
+  const isAuthenticated = useMemo(() => {
+    return !isLoading && !isError && !!user;
+  }, [isLoading, isError, user]);
 
   return (
     <AuthContext.Provider
-      value={{ user, authenticated, login, logout, loading }}
+      value={{
+        user,
+        authenticated: isAuthenticated,
+        loading: isLoading,
+        refreshAuth,
+      }}
     >
       {children}
     </AuthContext.Provider>

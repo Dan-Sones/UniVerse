@@ -4,7 +4,7 @@ import BackButton from './search/BackButton';
 import { useState } from 'react';
 import SearchResultRow from './search/SearchResultRow';
 import { useQuery } from '@tanstack/react-query';
-import ChatQueryMethods from '../../api/queries/ChatQueries';
+import ChatQueryMethods from '../../api/queries/chatQueries';
 import { useDebounce } from 'use-debounce';
 import { CircularProgress } from '@mui/material';
 import { SearchUser } from '../models/Chat';

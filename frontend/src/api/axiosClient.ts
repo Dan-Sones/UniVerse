@@ -9,7 +9,8 @@ export const axiosClient = (() => {
   });
 })();
 
-export const request = async (options: AxiosRequestConfig) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const request = async (options: AxiosRequestConfig, payload?: any) => {
   const onSuccess = (response: AxiosResponse) => {
     const { data } = response;
     return data;
@@ -22,6 +23,10 @@ export const request = async (options: AxiosRequestConfig) => {
       response: error.response,
     });
   };
-
-  return axiosClient(options).then(onSuccess).catch(onError);
+  return axiosClient({
+    ...options,
+    data: payload,
+  })
+    .then(onSuccess)
+    .catch(onError);
 };

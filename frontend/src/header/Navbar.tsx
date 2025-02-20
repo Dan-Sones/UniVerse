@@ -8,37 +8,27 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
-import SearchBar from '../home/components/SearchArea';
+import { useLogout } from '../hooks/UseLogout';
+import { queryClient } from '../api/queryClient';
 
 const NavBar = () => {
   const navigate = useNavigate();
 
-  const { authenticated, logout } = useAuth();
+  const { authenticated, refreshAuth } = useAuth();
+  const { mutate: logoutMutate } = useLogout();
 
   const handlePressLogin = () => {
     navigate('/login');
   };
 
   const handlePressLogout = async () => {
-    console.log('logging out');
-    logout();
-    navigate('/login');
-  };
-
-  const renderLoginLogoutButton = () => {
-    if (authenticated == false) {
-      return (
-        <Button color="inherit" onClick={handlePressLogin}>
-          Login
-        </Button>
-      );
-    } else {
-      return (
-        <Button color="inherit" onClick={handlePressLogout}>
-          Logout
-        </Button>
-      );
-    }
+    logoutMutate(undefined, {
+      onSuccess: async () => {
+        await refreshAuth();
+        navigate('/login');
+      },
+      onError: () => {},
+    });
   };
 
   return (
@@ -55,7 +45,15 @@ const NavBar = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             UniVerse
           </Typography>
-          {renderLoginLogoutButton()}
+          {!authenticated ? (
+            <Button color="inherit" onClick={handlePressLogin}>
+              Login
+            </Button>
+          ) : (
+            <Button color="inherit" onClick={handlePressLogout}>
+              Logout
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
     </Box>
