@@ -6,7 +6,7 @@ import SearchResultRow from './search/SearchResultRow';
 import { useQuery } from '@tanstack/react-query';
 import { useDebounce } from 'use-debounce';
 import { CircularProgress } from '@mui/material';
-import { SearchUser } from '../models/Chat';
+import { ChatRecepient } from '../models/Chat';
 import ChatQueryMethods from '../../api/queries/ChatQueries';
 
 const SearchAreaWrapper = styled.div`
@@ -36,7 +36,7 @@ const SearchResultsWrapper = styled.div`
 interface SearchAreaProps {
   onBackButtonPress: VoidFunction;
   onSearchIntention: VoidFunction;
-  onResultSelected: (data: SearchUser) => void;
+  onResultSelected: (data: ChatRecepient) => void;
   activeSearch: boolean;
 }
 const SEARCH_QUERY_KEY = 'SEARCH_QUERY_KEY';
@@ -55,7 +55,7 @@ const SearchArea = (props: SearchAreaProps) => {
 
   const { data: searchResults, isPending } = useQuery({
     queryKey: [SEARCH_QUERY_KEY, debouncedSearchValue],
-    queryFn: () => ChatQueryMethods.searchUser(searchValue),
+    queryFn: () => ChatQueryMethods.ChatRecepient(searchValue),
     enabled: !!debouncedSearchValue,
   });
 
@@ -84,7 +84,7 @@ const SearchArea = (props: SearchAreaProps) => {
 
           {!isPending &&
             searchResults &&
-            searchResults.map((result: SearchUser) => {
+            searchResults.map((result: ChatRecepient) => {
               return (
                 <SearchResultRow
                   data={result}

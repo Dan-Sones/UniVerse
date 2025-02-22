@@ -6,7 +6,6 @@ import AuthService from '../services/AuthService';
 export default class AuthQueryMethods {
   public static readonly checkAuth = async (): Promise<User> => {
     const response = await AuthService.checkAuth();
-    console.log(response);
     return response;
   };
 

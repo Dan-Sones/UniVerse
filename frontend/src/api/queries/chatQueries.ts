@@ -1,11 +1,18 @@
-import { SearchUser } from '../../home/models/Chat';
+import { ChatHistory, ChatRecepient } from '../../home/models/Chat';
 import ChatService from '../services/ChatService';
 
 export default class ChatQueryMethods {
-  public static readonly searchUser = async (
+  public static readonly ChatRecepient = async (
     query: string
-  ): Promise<SearchUser[]> => {
-    const response = await ChatService.searchUser(query);
+  ): Promise<ChatRecepient[]> => {
+    const response = await ChatService.ChatRecepient(query);
+
+    return response;
+  };
+  public static readonly getChatHistory = async (
+    userId: number
+  ): Promise<ChatHistory> => {
+    const response = await ChatService.getChatHistory(userId);
 
     return response;
   };

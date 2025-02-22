@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ChatArea from './ChatArea';
 import styled from 'styled-components';
 import { ChatPreview, ChatType } from './models/Chat';
 import ChatList from './components/ChatList';
-import { useAuth } from '../context/AuthContext';
-import useWebSocket from '../hooks/UseWebSocket';
 
 const HomeWrapper = styled.div`
   display: flex;
@@ -41,10 +39,16 @@ const Home = () => {
     messages: [],
   });
 
+  const [loading, setLoading] = useState<boolean>(false);
+
   return (
     <HomeWrapper>
-      <ChatList chatItems={chatItems} setActiveChat={setActiveChat} />
-      <ChatArea chat={activeChat} />
+      <ChatList
+        chatItems={chatItems}
+        setActiveChat={setActiveChat}
+        setLoading={setLoading}
+      />
+      <ChatArea chat={activeChat} setActiveChat={setActiveChat} />
     </HomeWrapper>
   );
 };

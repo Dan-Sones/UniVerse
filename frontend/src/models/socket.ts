@@ -1,12 +1,14 @@
+import { MessageType } from '../home/models/Chat';
+
 export type OutboundMessage = {
-  type: string;
+  type: MessageType;
   from: number;
   to: number;
   content: string;
 };
 
 export type InboundMessage = {
-  type: string;
+  type: MessageType;
   from: number;
   to: number;
   content: string;

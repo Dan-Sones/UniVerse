@@ -1,12 +1,12 @@
 import ChatBar from './components/ChatBar';
 import styled from 'styled-components';
 import Chat from './components/Chat';
-import { ChatType } from './models/Chat';
+import { ChatType, MessageType } from './models/Chat';
 import ActiveChatHeader from './components/ActiveChatHeader';
 import useWebSocket from '../hooks/UseWebSocket';
 import { useAuth } from '../context/AuthContext';
 import { OutboundMessage } from '../models/socket';
-import { useEffect } from 'react';
+import { Dispatch, useEffect } from 'react';
 
 const MessageArea = styled.div`
   height: 100%;
@@ -26,12 +26,13 @@ const ChatAreaWrapper = styled.div`
 
 interface ChatAreaProps {
   chat: ChatType;
+  setActiveChat: Dispatch<React.SetStateAction<ChatType>>;
 }
 
 const ChatArea = (props: ChatAreaProps) => {
   const { ws, messages: wsMessages } = useWebSocket();
 
-  const { chat } = props;
+  const { chat, setActiveChat } = props;
 
   const { user } = useAuth();
 
@@ -50,17 +51,31 @@ const ChatArea = (props: ChatAreaProps) => {
   // If the user is does not have the chat selected, update the chat preview to be at the top of the chatList
   // with the most recent message previewed
 
-  useEffect(() => {}, [wsMessages]);
+  useEffect(() => {
+    setActiveChat((prevActive) => {
+      return {
+        ...prevActive,
+        messages: [...prevActive.messages, ...wsMessages],
+      };
+    });
+  }, [wsMessages]);
 
   const sendMessage = (message: string) => {
     if (ws && ws.readyState === WebSocket.OPEN && user) {
       const toSend: OutboundMessage = {
-        type: 'chat',
+        type: MessageType.TEXT,
         from: user.id,
         to: chat.recepient.id,
         content: message,
       };
       ws.send(JSON.stringify(toSend));
+
+      setActiveChat((prevActive) => {
+        return {
+          ...prevActive,
+          messages: [...prevActive.messages, toSend],
+        };
+      });
     }
   };
 
@@ -68,12 +83,12 @@ const ChatArea = (props: ChatAreaProps) => {
     <ChatAreaWrapper>
       <ActiveChatHeader recepient={props.chat.recepient} />
       <MessageArea>
-        {wsMessages.map((message) => {
+        {chat.messages.map((message, index) => {
           return (
             <Chat
               isSent={isSent(message.from)}
               message={message.content}
-              key={message.content}
+              key={message.Id ?? index}
             />
           );
         })}

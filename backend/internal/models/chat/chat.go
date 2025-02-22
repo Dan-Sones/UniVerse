@@ -5,8 +5,8 @@ import "encoding/json"
 type MessageStatus int
 
 const (
-	StateRead MessageStatus = iota
-	StateDelivered
+	StateDelivered MessageStatus = iota
+	StateRead
 )
 
 var messageStateMap = map[MessageStatus]string{
@@ -50,9 +50,17 @@ type Message struct {
 }
 
 type OutboundMessage struct {
+	MessageId string `json:"messageId"`
+	Type      string `json:"type"`
+	From      int64  `json:"from"`
+	To        int64  `json:"to"`
+	Content   string `json:"content"`
+	Time      string `json:"time"`
+}
+
+type InboundMessage struct {
 	Type    string `json:"type"`
 	From    int64  `json:"from"`
 	To      int64  `json:"to"`
 	Content string `json:"content"`
-	Time    string `json:"time"`
 }

@@ -6,13 +6,6 @@ import (
 	"log"
 )
 
-type InboundMessage struct {
-	Type    string `json:"type"`
-	From    int64  `json:"from"`
-	To      int64  `json:"to"`
-	Content string `json:"content"`
-}
-
 type Client struct {
 	Conn   *websocket.Conn
 	UserID int64

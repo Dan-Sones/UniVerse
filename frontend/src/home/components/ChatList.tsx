@@ -1,9 +1,12 @@
 import styled from 'styled-components';
 import ChatPreview from './ChatPreview';
 import SearchArea from './SearchArea';
-import { Dispatch, useState } from 'react';
-import { ChatRecepient, ChatType, SearchUser } from '../models/Chat';
+import { Dispatch, useEffect, useState } from 'react';
+import { ChatType, ChatRecepient } from '../models/Chat';
 import { ChatPreview as ChatPreviewType } from '../models/Chat';
+import { useQuery } from '@tanstack/react-query';
+import ChatQueryMethods from '../../api/queries/ChatQueries';
+import { convertChatHistoryToMessages } from '../chatHelpers';
 
 const ChatListWrapper = styled.div`
   width: 30%;
@@ -23,11 +26,43 @@ const ChatListWrapper = styled.div`
 interface ChatListProps {
   chatItems: Array<ChatPreviewType>;
   setActiveChat: Dispatch<React.SetStateAction<ChatType>>;
+  setLoading: Dispatch<React.SetStateAction<boolean>>;
 }
 
+const CHAT_HISTORY_QUERY_KEY = 'CHAT_HISTORY_QUERY_KEY';
+
 const ChatList = (props: ChatListProps) => {
-  const { chatItems, setActiveChat } = props;
+  const { chatItems, setActiveChat, setLoading } = props;
   const [activeSearch, setActiveSearch] = useState(false);
+
+  const [selectedRecepient, setSelectedRecepient] =
+    useState<ChatRecepient | null>(null);
+
+  const { data: history, isPending } = useQuery({
+    queryKey: [CHAT_HISTORY_QUERY_KEY, selectedRecepient?.id], // Include recipient ID
+    queryFn: () =>
+      selectedRecepient
+        ? ChatQueryMethods.getChatHistory(selectedRecepient.id)
+        : Promise.resolve([]),
+    enabled: !!selectedRecepient,
+  });
+
+  useEffect(() => {
+    setLoading(true);
+  }, [isPending]);
+
+  useEffect(() => {
+    if (selectedRecepient && history) {
+      setActiveChat({
+        recepient: {
+          username: selectedRecepient.username,
+          profilePictureUrl: selectedRecepient.profilePictureUrl,
+          id: selectedRecepient.id,
+        },
+        messages: convertChatHistoryToMessages(history),
+      });
+    }
+  }, [selectedRecepient, history]);
 
   const onBackButtonPress = () => {
     setActiveSearch(false);
@@ -37,23 +72,13 @@ const ChatList = (props: ChatListProps) => {
     setActiveSearch(true);
   };
 
-  const onResultSelected = (result: SearchUser) => {
+  const onSearchResultSelected = (result: ChatRecepient) => {
     setActiveSearch(false);
-    setActiveChat({
-      recepient: {
-        username: result.username,
-        profilePictureUrl: result.profilePictureUrl,
-        id: result.id,
-      },
-      messages: [],
-    });
+    onChatClick(result);
   };
 
   const onChatClick = (recepient: ChatRecepient) => {
-    setActiveChat({
-      messages: [],
-      recepient: recepient,
-    });
+    setSelectedRecepient(recepient);
   };
 
   return (
@@ -62,7 +87,7 @@ const ChatList = (props: ChatListProps) => {
         onSearchIntention={onSearchIntention}
         onBackButtonPress={onBackButtonPress}
         activeSearch={activeSearch}
-        onResultSelected={onResultSelected}
+        onResultSelected={onSearchResultSelected}
       />
 
       {!activeSearch &&

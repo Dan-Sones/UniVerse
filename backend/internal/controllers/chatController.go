@@ -28,12 +28,12 @@ func (cc *ChatController) GetChatHistoryFor(c *gin.Context) {
 
 	fromId, ok := ctx.Value("user_id").(int64)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{Error: "Failed to fetch chat history"})
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "could not identify you"})
 	}
 
 	toId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{Error: "Failed to fetch chat history"})
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{Error: "Invalid userId"})
 	}
 
 	messages, err := cc.service.GetHistoryFor(ctx, fromId, toId)

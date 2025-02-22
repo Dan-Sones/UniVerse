@@ -13,7 +13,7 @@ import (
 
 type Hub struct {
 	Clients    map[int64]*Client
-	Broadcast  chan InboundMessage
+	Broadcast  chan chat.InboundMessage
 	Register   chan *Client
 	Unregister chan *Client
 	mu         sync.Mutex
@@ -25,7 +25,7 @@ func NewHub(db *dynamodb.Client, logger *zerolog.Logger) *Hub {
 	chatService := services.NewChatService(db, logger)
 	return &Hub{
 		Clients:    make(map[int64]*Client),
-		Broadcast:  make(chan InboundMessage),
+		Broadcast:  make(chan chat.InboundMessage),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		service:    chatService,
