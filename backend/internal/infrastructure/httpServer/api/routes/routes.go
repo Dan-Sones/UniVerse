@@ -37,6 +37,7 @@ func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dyna
 	}
 
 	userController := controllers.NewUserController(pgPool, r.Logger)
+	chatController := controllers.NewChatController(dynamoClient, r.Logger)
 
 	// TODO: Secure somehow
 
@@ -60,5 +61,11 @@ func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dyna
 	{
 		privateUsers.GET("/me", userController.Me)
 		privateUsers.GET("/search", userController.SearchUsers)
+	}
+
+	chat := public.Group("/chat")
+	chat.Use(middleware.JWTMiddleware())
+	{
+		chat.GET("/:id/history", chatController.GetChatHistoryFor) // TODO: Paginate this
 	}
 }

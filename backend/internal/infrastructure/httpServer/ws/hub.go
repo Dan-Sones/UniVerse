@@ -48,25 +48,32 @@ func (h *Hub) Run() {
 			}
 			h.mu.Unlock()
 		case message := <-h.Broadcast:
+
+			sentTime := time.Now()
+			outboundMessage := chat.OutboundMessage{
+				Type:    message.Type,
+				From:    message.From,
+				To:      message.To,
+				Content: message.Content,
+				Time:    sentTime.Format(time.RFC3339),
+			}
+
 			if client, exists := h.Clients[message.To]; exists {
 
-				sentTime := time.Now()
-
-				outboundMessage := chat.OutboundMessage{
-					Type:    message.Type,
-					From:    message.From,
-					To:      message.To,
-					Content: message.Content,
-					Time:    sentTime.Format(time.RFC3339),
-				}
 				outboundJson, err := json.Marshal(outboundMessage)
 				if err != nil {
 					h.logger.Error().Err(err).Msg("failed to marshal outbound message")
 					return
 				}
 
-				h.service.StoreMessage(context.Background(), &outboundMessage, sentTime)
 				client.Send <- outboundJson
+			} else {
+				// TODO: Push to pub sub stack with ttl
+			}
+
+			err := h.service.StoreMessage(context.Background(), &outboundMessage, sentTime)
+			if err != nil {
+				return
 			}
 
 		}

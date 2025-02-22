@@ -6,7 +6,6 @@ import (
 	"backend/internal/infrastructure"
 	"backend/internal/services"
 	"backend/internal/utils"
-	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -16,7 +15,6 @@ import (
 )
 
 type UserController struct {
-	ctx     context.Context
 	Logger  *zerolog.Logger
 	service *services.UserService
 }

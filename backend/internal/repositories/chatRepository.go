@@ -3,6 +3,7 @@ package repositories
 import (
 	"backend/internal/models/chat"
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -18,7 +19,7 @@ type ChatRepositoryDynamoImpl struct {
 	db *dynamodb.Client
 }
 
-const tableName = "Messages"
+const tableName = "messages"
 
 func NewChatRepositoryDynamoImpl(client *dynamodb.Client) *ChatRepositoryDynamoImpl {
 	return &ChatRepositoryDynamoImpl{db: client}
@@ -59,12 +60,13 @@ func (c *ChatRepositoryDynamoImpl) GetConversation(ctx context.Context, conversa
 			if err != nil {
 				break
 			} else {
-				var message chat.Message
-				err = attributevalue.UnmarshalListOfMaps(response.Items, &message)
+				var batchMessages []*chat.Message
+				fmt.Println(response.Items)
+				err = attributevalue.UnmarshalListOfMaps(response.Items, &batchMessages)
 				if err != nil {
 					break
 				} else {
-					messages = append(messages, &message)
+					messages = append(messages, batchMessages...)
 				}
 			}
 		}
