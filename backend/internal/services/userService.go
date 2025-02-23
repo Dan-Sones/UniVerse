@@ -14,13 +14,12 @@ import (
 
 type UserService struct {
 	repo   repositories.UserRepository
-	ctx    context.Context
 	logger *zerolog.Logger
 }
 
-func NewUserService(ctx context.Context, db *pgxpool.Pool, logger *zerolog.Logger) *UserService {
-	userRepo := repositories.NewUserRepository(db)
-	return &UserService{repo: userRepo, ctx: ctx, logger: logger}
+func NewUserService(db *pgxpool.Pool, logger *zerolog.Logger) *UserService {
+	userRepo := repositories.NewUserRepositoryPGImpl(db)
+	return &UserService{repo: userRepo, logger: logger}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, request dtos.CreateUserRequest) (*users.User, error) {
@@ -68,9 +67,9 @@ func (s *UserService) Login(ctx context.Context, request dtos.LoginDTO) (string,
 	return token, nil
 }
 
-func (s *UserService) Me(ctx context.Context, userId float64) (*dtos.Me, error) {
+func (s *UserService) Me(ctx context.Context, userId int64) (*dtos.Me, error) {
 
-	user, err := s.repo.GetUserByID(ctx, int64(userId))
+	user, err := s.repo.GetUserByID(ctx, userId)
 	if err != nil {
 		return nil, err
 	}

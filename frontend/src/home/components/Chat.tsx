@@ -70,7 +70,7 @@ const Chat = (props: ChatProps) => {
       {!isSent && (
         <Avatar
           alt={'yooo'}
-          sx={{ width: 40, height: 40 }}
+          sx={{ width: 40, height: 40, marginLeft: '10px' }}
           src={
             'https://pub-1de51ae1e68144d78f7c582e1dda3ab1.r2.dev/clh8n0i2200wsmi08eyobfu35/7ee08a5b-8158-464b-b5da-d183e0e64831.webp'
           }

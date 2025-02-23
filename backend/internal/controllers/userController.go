@@ -6,7 +6,6 @@ import (
 	"backend/internal/infrastructure"
 	"backend/internal/services"
 	"backend/internal/utils"
-	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -16,14 +15,13 @@ import (
 )
 
 type UserController struct {
-	ctx     context.Context
 	Logger  *zerolog.Logger
 	service *services.UserService
 }
 
-func NewUserController(ctx context.Context, db *pgxpool.Pool, logger *zerolog.Logger) *UserController {
-	userService := services.NewUserService(ctx, db, logger)
-	return &UserController{service: userService, ctx: ctx, Logger: logger}
+func NewUserController(db *pgxpool.Pool, logger *zerolog.Logger) *UserController {
+	userService := services.NewUserService(db, logger)
+	return &UserController{service: userService, Logger: logger}
 }
 
 func (uc *UserController) CreateUser(c *gin.Context) {
@@ -115,7 +113,7 @@ func (uc *UserController) Me(c *gin.Context) {
 		return
 	}
 
-	me, err := uc.service.Me(c.Request.Context(), userID)
+	me, err := uc.service.Me(c.Request.Context(), int64(userID))
 	if errors.Is(err, appErr.ErrNotFound) {
 		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{Error: "User not found"})
 		return
@@ -126,7 +124,7 @@ func (uc *UserController) Me(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": me})
+	c.JSON(http.StatusOK, me)
 }
 
 func (uc *UserController) SearchUsers(c *gin.Context) {

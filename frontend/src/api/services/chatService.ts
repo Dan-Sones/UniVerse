@@ -1,17 +1,26 @@
 import { request } from '../axiosClient';
 import { ChatEndpoints } from '../endpoints';
-import { SearchUser } from '../../home/models/Chat';
+import { ChatHistory, ChatRecepient } from '../../home/models/Chat';
 
 export default class ChatService {
-  public static readonly searchUser = (
+  public static readonly ChatRecepient = (
     query: string
-  ): Promise<SearchUser[]> => {
+  ): Promise<ChatRecepient[]> => {
     return request({
       url: ChatEndpoints.searchUsers(),
       method: 'get',
       params: {
         q: query,
       },
+    });
+  };
+
+  public static readonly getChatHistory = (
+    userId: number
+  ): Promise<ChatHistory> => {
+    return request({
+      url: ChatEndpoints.getChatHistory(userId),
+      method: 'get',
     });
   };
 }

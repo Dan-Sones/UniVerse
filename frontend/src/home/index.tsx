@@ -20,7 +20,7 @@ const chatItems: Array<ChatPreview> = [
     recepient: {
       username: 'john_doe',
       profilePictureUrl: 'https://example.com/profiles/john_doe.jpg',
-      id: '1',
+      id: 1,
     },
     recentMessage: {
       message: 'Hey, how are you?',
@@ -34,30 +34,21 @@ const Home = () => {
     recepient: {
       username: '',
       profilePictureUrl: '',
-      id: '1',
+      id: 1,
     },
     messages: [],
   });
 
-  const addMessage = (message: string) => {
-    setActiveChat((prevChat) => {
-      return {
-        ...prevChat,
-        messages: [
-          ...prevChat.messages,
-          {
-            message: message,
-            isSent: true,
-          },
-        ],
-      };
-    });
-  };
+  const [loading, setLoading] = useState<boolean>(false);
 
   return (
     <HomeWrapper>
-      <ChatList chatItems={chatItems} setActiveChat={setActiveChat} />
-      <ChatArea addMessage={addMessage} chat={activeChat} />
+      <ChatList
+        chatItems={chatItems}
+        setActiveChat={setActiveChat}
+        setLoading={setLoading}
+      />
+      <ChatArea chat={activeChat} setActiveChat={setActiveChat} />
     </HomeWrapper>
   );
 };

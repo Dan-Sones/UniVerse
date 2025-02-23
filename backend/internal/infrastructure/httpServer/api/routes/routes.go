@@ -3,7 +3,8 @@ package routes
 import (
 	"backend/internal/controllers"
 	"backend/internal/infrastructure/httpServer/api/middleware"
-	"context"
+	"backend/internal/infrastructure/httpServer/ws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
@@ -14,7 +15,7 @@ type routes struct {
 }
 
 type Routes interface {
-	InitializeRoutes(ctx context.Context, router *gin.Engine, db *pgxpool.Pool)
+	InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client)
 }
 
 func NewRoutes(logger *zerolog.Logger) Routes {
@@ -23,7 +24,11 @@ func NewRoutes(logger *zerolog.Logger) Routes {
 	}
 }
 
-func (r *routes) InitializeRoutes(ctx context.Context, router *gin.Engine, db *pgxpool.Pool) {
+func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client) {
+
+	hub := ws.NewHub(dynamoClient, r.Logger)
+	go hub.Run()
+
 	public := router.Group("/api")
 	{
 		public.GET("/ping", func(c *gin.Context) {
@@ -31,7 +36,18 @@ func (r *routes) InitializeRoutes(ctx context.Context, router *gin.Engine, db *p
 		})
 	}
 
-	userController := controllers.NewUserController(ctx, db, r.Logger)
+	userController := controllers.NewUserController(pgPool, r.Logger)
+	chatController := controllers.NewChatController(dynamoClient, r.Logger)
+
+	// TODO: Secure somehow
+
+	webSockets := router.Group("/ws")
+	webSockets.Use(middleware.JWTMiddleware())
+	{
+		webSockets.GET("", func(c *gin.Context) {
+			ws.ServeWS(hub, c)
+		})
+	}
 
 	publicUsers := public.Group("/users")
 	{
@@ -45,5 +61,11 @@ func (r *routes) InitializeRoutes(ctx context.Context, router *gin.Engine, db *p
 	{
 		privateUsers.GET("/me", userController.Me)
 		privateUsers.GET("/search", userController.SearchUsers)
+	}
+
+	chat := public.Group("/chats")
+	chat.Use(middleware.JWTMiddleware())
+	{
+		chat.GET("/:id/history", chatController.GetChatHistoryFor) // TODO: Paginate this
 	}
 }

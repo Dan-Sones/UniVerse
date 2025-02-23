@@ -22,7 +22,7 @@ type UserRepositoryPGImpl struct {
 	db *pgxpool.Pool
 }
 
-func NewUserRepository(db *pgxpool.Pool) UserRepository {
+func NewUserRepositoryPGImpl(db *pgxpool.Pool) UserRepository {
 	return &UserRepositoryPGImpl{db: db}
 }
 

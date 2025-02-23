@@ -1,3 +1,5 @@
+import { ChatHistory, Messages } from './models/Chat';
+
 export const dateToAgoString = (timestamp: string) => {
   const now = new Date();
   const past = new Date(timestamp);
@@ -20,4 +22,20 @@ export const dateToAgoString = (timestamp: string) => {
     const weeks = Math.ceil(diffInSeconds / week);
     return `${weeks}w`;
   }
+};
+
+export const convertChatHistoryToMessages = (history: ChatHistory) => {
+  const messages: Messages = [];
+
+  history.forEach((historyItem) => {
+    messages.push({
+      type: historyItem.messageType,
+      from: historyItem.senderId,
+      to: historyItem.recieverId,
+      content: historyItem.content,
+      Id: historyItem.messageId,
+    });
+  });
+
+  return messages;
 };

@@ -1,17 +1,12 @@
-export type ChatMessage = {
-  message: string;
-  isSent: boolean;
-};
-
 export type ChatType = {
-  messages: Array<ChatMessage>;
+  messages: Messages;
   recepient: ChatRecepient;
 };
 
 export type ChatRecepient = {
   username: string;
   profilePictureUrl: string;
-  id: string;
+  id: number;
 };
 
 export type ChatPreview = {
@@ -24,8 +19,30 @@ export type RecentMessage = {
   timestamp: string;
 };
 
-export type SearchUser = {
-  id: string;
-  username: string;
-  profilePictureUrl: string;
+export enum MessageType {
+  TEXT = 'TEXT',
+  //TODO: Include Image here
+}
+
+export type ChatHistoryItem = {
+  conversationId: string;
+  messageId: string;
+  timestamp: string;
+  senderId: number;
+  recieverId: number;
+  content: string;
+  messageType: MessageType;
+  status: number;
 };
+
+export type ChatHistory = Array<ChatHistoryItem>;
+
+export type Message = {
+  Id?: string;
+  type: MessageType;
+  from: number;
+  to: number;
+  content: string;
+};
+
+export type Messages = Array<Message>;
