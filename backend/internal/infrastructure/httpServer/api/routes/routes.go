@@ -63,7 +63,7 @@ func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dyna
 		privateUsers.GET("/search", userController.SearchUsers)
 	}
 
-	chat := public.Group("/chat")
+	chat := public.Group("/chats")
 	chat.Use(middleware.JWTMiddleware())
 	{
 		chat.GET("/:id/history", chatController.GetChatHistoryFor) // TODO: Paginate this

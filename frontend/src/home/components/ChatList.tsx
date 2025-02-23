@@ -39,7 +39,7 @@ const ChatList = (props: ChatListProps) => {
     useState<ChatRecepient | null>(null);
 
   const { data: history, isPending } = useQuery({
-    queryKey: [CHAT_HISTORY_QUERY_KEY, selectedRecepient?.id], // Include recipient ID
+    queryKey: [CHAT_HISTORY_QUERY_KEY, selectedRecepient?.id],
     queryFn: () =>
       selectedRecepient
         ? ChatQueryMethods.getChatHistory(selectedRecepient.id)

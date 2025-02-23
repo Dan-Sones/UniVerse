@@ -7,5 +7,5 @@ export const AuthEndpoints = {
 
 export const ChatEndpoints = {
   searchUsers: () => 'users/search',
-  getChatHistory: (userId: number) => `chat/${userId}/history`,
+  getChatHistory: (userId: number) => `chats/${userId}/history`,
 };
