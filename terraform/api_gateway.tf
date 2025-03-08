@@ -40,11 +40,6 @@ resource "aws_api_gateway_method" "proxy_method" {
 }
 
 
-resource "aws_api_gateway_vpc_link" "vpc_link" {
-  name        = "chat-vpc-link"
-  target_arns = [aws_lb.nlb.arn]
-  description = "VPC link for API Gateway to access Go backend EC2 instance"
-}
 
 resource "aws_api_gateway_integration" "proxy_integration" {
   rest_api_id             = aws_api_gateway_rest_api.rest_api.id
@@ -52,9 +47,7 @@ resource "aws_api_gateway_integration" "proxy_integration" {
   http_method             = aws_api_gateway_method.proxy_method.http_method
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
-  connection_type         = "VPC_LINK"
-  connection_id           = aws_api_gateway_vpc_link.vpc_link.id
-  uri                     = "http://${aws_lb.nlb.dns_name}/api/{proxy}"
+  uri                     = "http://${aws_lb.universe_alb.dns_name}/api/{proxy}"
 
   request_parameters = {
     "integration.request.path.proxy" = "method.request.path.proxy"
@@ -66,10 +59,6 @@ resource "aws_api_gateway_integration" "proxy_integration" {
 resource "aws_api_gateway_deployment" "chat_api_deploy" {
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
 
-
-  triggers = {
-    redeployment = timestamp() # Forces a new deployment
-  }
 
   lifecycle {
     create_before_destroy = true
