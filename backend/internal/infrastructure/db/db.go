@@ -25,8 +25,8 @@ func NewDBPOOL() (*pgxpool.Pool, error) {
 
 	fmt.Println(host, port, user, password, dbName)
 
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-		user, password, host, port, dbName)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=require",
+		user, password, host, dbName)
 
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
@@ -53,14 +53,12 @@ func GetLocalConfiguration(endpoint string) clientOptions {
 
 func NewDynamoDBClient(opts ...clientOptions) (*dynamodb.Client, error) {
 
-	// Load the Shared AWS Configuration (~/.aws/config)
 	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create aws config: %w", err)
 	}
 
 	client := dynamodb.NewFromConfig(cfg, func(options *dynamodb.Options) {
-		// Apply supplied options
 		for _, fn := range opts {
 			fn(options)
 		}

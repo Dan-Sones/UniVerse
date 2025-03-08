@@ -18,6 +18,10 @@ resource "aws_db_instance" "users" {
 # therefore we are forcing it to be created inside the same vpc by using its subnet
 resource "aws_db_subnet_group" "users_subnet_group" {
   name        = "users-subnet-group"
-  subnet_ids  = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]
+  subnet_ids  = [aws_subnet.rds_private_subnet_1.id, aws_subnet.rds_private_subnet_2.id]
   description = "Subnet group for users RDS"
+}
+
+output "thing" {
+  value = aws_db_instance.users.address
 }

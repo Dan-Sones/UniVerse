@@ -16,20 +16,56 @@ resource "aws_subnet" "public_subnet_2" {
   availability_zone       = "us-east-1b"
 }
 
-# Private Subnet for EC2
-resource "aws_subnet" "private_subnet_1" {
+resource "aws_subnet" "ec2_private_subnet_1" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.3.0/24"
   availability_zone = "us-east-1a"
 }
 
-# Private Subnet for RDS
-resource "aws_subnet" "private_subnet_2" {
+resource "aws_subnet" "ec2_private_subnet_2" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.4.0/24"
   availability_zone = "us-east-1b"
 }
 
+# Private Subnet for RDS
+resource "aws_subnet" "rds_private_subnet_1" {
+  vpc_id            = aws_vpc.chat_vpc.id
+  cidr_block        = "10.0.5.0/24"
+  availability_zone = "us-east-1a"
+}
+
+resource "aws_subnet" "rds_private_subnet_2" {
+  vpc_id            = aws_vpc.chat_vpc.id
+  cidr_block        = "10.0.6.0/24"
+  availability_zone = "us-east-1b"
+}
+
+resource "aws_subnet" "ecs_private_subnet_1" {
+  vpc_id            = aws_vpc.chat_vpc.id
+  cidr_block        = "10.0.7.0/24"
+  availability_zone = "us-east-1a"
+}
+
+resource "aws_subnet" "ecs_private_subnet_2" {
+  vpc_id            = aws_vpc.chat_vpc.id
+  cidr_block        = "10.0.8.0/24"
+  availability_zone = "us-east-1b"
+}
+
+resource "aws_subnet" "alb_public_subnet_1" {
+  vpc_id                  = aws_vpc.chat_vpc.id
+  map_public_ip_on_launch = true
+  cidr_block              = "10.0.9.0/24"
+  availability_zone       = "us-east-1a"
+}
+
+resource "aws_subnet" "alb_public_subnet_2" {
+  vpc_id                  = aws_vpc.chat_vpc.id
+  map_public_ip_on_launch = true
+  cidr_block              = "10.0.10.0/24"
+  availability_zone       = "us-east-1b"
+}
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.chat_vpc.id
@@ -58,35 +94,51 @@ resource "aws_route_table_association" "public_subnet_2_assoc" {
   route_table_id = aws_route_table.public_rt.id
 }
 
-
-
-# Do some routing to allow the ec2 instance to access the internet (OUTBOUND) so it can pull the deps it needs to access the server
-
-resource "aws_route_table" "private_rt" {
-  vpc_id = aws_vpc.chat_vpc.id
+resource "aws_route_table_association" "public_subnet_ecs_1_assoc" {
+  subnet_id      = aws_subnet.alb_public_subnet_1.id
+  route_table_id = aws_route_table.public_rt.id
 }
 
 
-# Associate the private route table with the private subnet
+resource "aws_route_table_association" "public_subnet_ecs_2_assoc" {
+  subnet_id      = aws_subnet.alb_public_subnet_2.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+
+# Do some routing to allow the ecs instance to access the internet (OUTBOUND) so it can pull the deps it needs to access the server
 resource "aws_route_table_association" "private_subnet_assoc" {
-  subnet_id      = aws_subnet.private_subnet_1.id
+  subnet_id      = aws_subnet.ec2_private_subnet_1.id
   route_table_id = aws_route_table.private_rt.id
 }
 
-# Create an Elastic IP for the NAT Gateway
+
 resource "aws_eip" "nat_eip" {
   domain = "vpc"
 }
 
-# Create the NAT Gateway in a Public Subnet
+
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat_eip.id
   subnet_id     = aws_subnet.public_subnet_1.id
 }
 
-# Route all internet-bound traffic from private subnet to the NAT Gateway
-resource "aws_route" "private_internet_access" {
-  route_table_id         = aws_route_table.private_rt.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat.id
+resource "aws_route_table" "private_rt" {
+  vpc_id = aws_vpc.chat_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_nat_gateway.nat.id # Use the existing NAT Gateway
+  }
+}
+
+
+resource "aws_route_table_association" "private_subnet_1_association" {
+  subnet_id      = aws_subnet.ecs_private_subnet_1.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+resource "aws_route_table_association" "private_subnet_2_association" {
+  subnet_id      = aws_subnet.ecs_private_subnet_2.id
+  route_table_id = aws_route_table.private_rt.id
 }

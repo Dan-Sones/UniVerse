@@ -18,6 +18,11 @@ variable "profile" {
   type        = string
 }
 
+variable "arn" {
+  description = "arn for default iam"
+  type = string
+}
+
 variable "users_db_username" {
   description = "Username for the users RDS database"
   type        = string

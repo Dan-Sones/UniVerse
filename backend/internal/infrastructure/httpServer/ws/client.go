@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"backend/internal/models/chat"
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
@@ -25,7 +26,7 @@ func (c *Client) ReadMessages() {
 			break
 		}
 
-		var messageStruct InboundMessage
+		var messageStruct chat.InboundMessage
 		err = json.Unmarshal(message, &messageStruct)
 		if err != nil {
 			log.Println("Error marshalling message!")

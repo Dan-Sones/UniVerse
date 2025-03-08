@@ -9,18 +9,18 @@ resource "aws_elastic_beanstalk_environment" "frontend_env" {
 
   lifecycle {
     ignore_changes = [
-      version_label,         # Ignore changes when a new version is manually deployed
-      platform_arn,          # AWS might update this on platform version upgrades
-      solution_stack_name,   # AWS could update this if stack versions change
-      setting,               # AWS dynamically modifies settings, we don't want to track them
-      tags,                  # Ignore auto-generated AWS tags
-      triggers,              # AWS dynamically manages triggers
-      autoscaling_groups,    # AWS-managed, should not cause re-creation
-      instances,             # Instance changes should not force a redeploy
-      load_balancers,        # AWS modifies ELB configs dynamically
-      launch_configurations, # AWS-generated, ignore changes
-      queues,                # AWS dynamically updates these, ignore them
-      endpoint_url           # The IP or domain might change, ignore it
+      version_label,
+      platform_arn,
+      solution_stack_name,
+      setting,
+      tags,
+      triggers,
+      autoscaling_groups,
+      instances,
+      load_balancers,
+      launch_configurations,
+      queues,
+      endpoint_url
     ]
   }
 

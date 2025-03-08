@@ -12,7 +12,6 @@ import (
 	"os"
 )
 
-//go:embed users-db-init.sql
 var initSQL string
 
 func runInitScript(db *pgxpool.Pool) error {
@@ -21,25 +20,23 @@ func runInitScript(db *pgxpool.Pool) error {
 	return err
 }
 
-func loadEnv() {
-	env := os.Getenv("GO_ENV")
-
-	var envFile string
-	switch env {
-	case "dev":
-		envFile = ".env.dev"
-	default:
-		envFile = ".env.prod"
-	}
-
-	if err := godotenv.Load(envFile); err != nil {
-		log.Fatalf("Error loading %s file: %v", envFile, err)
-	}
-}
+//func loadEnv() {
+//	env := os.Getenv("GO_ENV")
+//
+//	var envFile string
+//	switch env {
+//	case "dev":
+//		envFile = ".env.dev"
+//	default:
+//		envFile = ".env.prod"
+//	}
+//
+//	if err := godotenv.Load(envFile); err != nil {
+//		log.Fatalf("Error loading %s file: %v", envFile, err)
+//	}
+//}
 
 func main() {
-
-	loadEnv()
 
 	logger := zerolog.New(os.Stdout)
 
