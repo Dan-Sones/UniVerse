@@ -45,7 +45,7 @@ type clientOptions func(*dynamodb.Options)
 
 func GetLocalConfiguration(endpoint string) clientOptions {
 	return func(options *dynamodb.Options) {
-		options.Region = "us-west-2"
+		options.Region = "us-east-1"
 		options.Credentials = credentials.NewStaticCredentialsProvider("local", "local", "local")
 		options.BaseEndpoint = aws.String(endpoint)
 	}

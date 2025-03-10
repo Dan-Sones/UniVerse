@@ -12,6 +12,7 @@ import (
 	"os"
 )
 
+//go:embed users-db-init.sql
 var initSQL string
 
 func runInitScript(db *pgxpool.Pool) error {

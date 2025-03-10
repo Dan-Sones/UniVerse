@@ -58,6 +58,7 @@ resource "aws_ecs_service" "universe_service" {
   desired_count   = 2
   launch_type     = "FARGATE"
 
+  enable_execute_command = true
 
   load_balancer {
     target_group_arn = aws_lb_target_group.universe_tg.arn
