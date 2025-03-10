@@ -9,8 +9,10 @@ resource "aws_lb" "universe_alb" {
 
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.universe_alb.arn
-  port              = 80
-  protocol          = "HTTP"
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = "arn:aws:acm:us-east-1:079810756638:certificate/fe3428ff-e3e9-41bb-afbc-f4760f6b92d2"
 
   default_action {
     type             = "forward"
@@ -38,5 +40,21 @@ resource "aws_lb_target_group" "universe_tg" {
     enabled         = true
     cookie_duration = 3600
   }
-
 }
+
+resource "aws_lb_listener" "http_redirect" {
+  load_balancer_arn = aws_lb.universe_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      protocol    = "HTTPS"
+      port        = "443"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 import { InboundMessage } from '../models/socket';
 
-export const WS_BASE_URL: string = import.meta.env.VITE_WS_BASE_URL;
+export const WS_BASE_URL: string = import.meta.env.VITE_API_BASE_URL + '/ws';
 
 const useWebSocket = () => {
   const [ws, setWs] = useState<WebSocket | null>(null);
@@ -20,7 +20,7 @@ const useWebSocket = () => {
       return;
     }
 
-    const socket = new WebSocket('ws://localhost:80/ws');
+    const socket = new WebSocket(WS_BASE_URL);
 
     socket.onopen = () => {
       console.log('WebSocket connected ✅');

@@ -5,7 +5,7 @@ import { Dispatch, useEffect, useState } from 'react';
 import { ChatType, ChatRecepient } from '../models/Chat';
 import { ChatPreview as ChatPreviewType } from '../models/Chat';
 import { useQuery } from '@tanstack/react-query';
-import ChatQueryMethods from '../../api/queries/ChatQueries';
+import ChatQueryMethods from '../../api/queries/chatQueries';
 import { convertChatHistoryToMessages } from '../chatHelpers';
 
 const ChatListWrapper = styled.div`

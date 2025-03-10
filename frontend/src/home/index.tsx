@@ -41,6 +41,10 @@ const Home = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
 
+  if (loading) {
+    console.log();
+  }
+
   return (
     <HomeWrapper>
       <ChatList
