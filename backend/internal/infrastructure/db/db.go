@@ -41,9 +41,9 @@ func NewDBPOOL() (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-type clientOptions func(*dynamodb.Options)
+type ClientOptions func(*dynamodb.Options)
 
-func GetLocalConfiguration(endpoint string) clientOptions {
+func GetLocalConfiguration(endpoint string) ClientOptions {
 	return func(options *dynamodb.Options) {
 		options.Region = "us-east-1"
 		options.Credentials = credentials.NewStaticCredentialsProvider("local", "local", "local")
@@ -51,8 +51,11 @@ func GetLocalConfiguration(endpoint string) clientOptions {
 	}
 }
 
-func NewDynamoDBClient(opts ...clientOptions) (*dynamodb.Client, error) {
+func GetProdConfigutration() ClientOptions {
+	return func(options *dynamodb.Options) {}
+}
 
+func NewDynamoDBClient(opts ...ClientOptions) (*dynamodb.Client, error) {
 	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create aws config: %w", err)
@@ -65,4 +68,5 @@ func NewDynamoDBClient(opts ...clientOptions) (*dynamodb.Client, error) {
 	})
 
 	return client, nil
+
 }

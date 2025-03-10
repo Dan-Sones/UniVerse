@@ -15,6 +15,7 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
   cpu                      = "512"
   memory                   = "1024"
   execution_role_arn       = var.arn
+  task_role_arn            = var.arn
 
   container_definitions = jsonencode([
     {

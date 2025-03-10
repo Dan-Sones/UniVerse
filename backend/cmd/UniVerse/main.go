@@ -54,7 +54,13 @@ func main() {
 		endpoint = "http://localhost:8000"
 	}
 
-	dynamoClient, err := db.NewDynamoDBClient(db.GetLocalConfiguration(endpoint))
+	var dynamoOptions db.ClientOptions
+	if os.Getenv("GO_ENV") == "production" {
+		dynamoOptions = db.GetProdConfigutration()
+	} else {
+		dynamoOptions = db.GetLocalConfiguration(endpoint)
+	}
+	dynamoClient, err := db.NewDynamoDBClient(dynamoOptions)
 
 	if err != nil {
 		log.Fatalf("Failed to connect to DynamoDB: %v", err)
