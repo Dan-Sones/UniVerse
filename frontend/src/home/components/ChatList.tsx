@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import ChatPreview from './ChatPreview';
 import SearchArea from './SearchArea';
 import { Dispatch, useEffect, useState } from 'react';
-import { ChatType, ChatRecepient } from '../models/Chat';
+import { ChatType, ChatRecepient, Messages } from '../models/Chat';
 import { ChatPreview as ChatPreviewType } from '../models/Chat';
 import { useQuery } from '@tanstack/react-query';
 import ChatQueryMethods from '../../api/queries/chatQueries';
@@ -27,12 +27,13 @@ interface ChatListProps {
   chatItems: Array<ChatPreviewType>;
   setActiveChat: Dispatch<React.SetStateAction<ChatType>>;
   setLoading: Dispatch<React.SetStateAction<boolean>>;
+  setMessages: Dispatch<React.SetStateAction<Messages>>;
 }
 
 const CHAT_HISTORY_QUERY_KEY = 'CHAT_HISTORY_QUERY_KEY';
 
 const ChatList = (props: ChatListProps) => {
-  const { chatItems, setActiveChat, setLoading } = props;
+  const { chatItems, setActiveChat, setLoading, setMessages } = props;
   const [activeSearch, setActiveSearch] = useState(false);
 
   const [selectedRecepient, setSelectedRecepient] =
@@ -59,8 +60,9 @@ const ChatList = (props: ChatListProps) => {
           profilePictureUrl: selectedRecepient.profilePictureUrl,
           id: selectedRecepient.id,
         },
-        messages: convertChatHistoryToMessages(history),
       });
+
+      setMessages(convertChatHistoryToMessages(history));
     }
   }, [selectedRecepient, history]);
 

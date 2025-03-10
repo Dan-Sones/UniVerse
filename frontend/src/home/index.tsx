@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ChatArea from './ChatArea';
 import styled from 'styled-components';
-import { ChatPreview, ChatType } from './models/Chat';
+import { ChatPreview, ChatType, Messages } from './models/Chat';
 import ChatList from './components/ChatList';
 
 const HomeWrapper = styled.div`
@@ -36,8 +36,9 @@ const Home = () => {
       profilePictureUrl: '',
       id: 1,
     },
-    messages: [],
   });
+
+  const [messages, setMessages] = useState<Messages>([]);
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -48,11 +49,17 @@ const Home = () => {
   return (
     <HomeWrapper>
       <ChatList
+        setMessages={setMessages}
         chatItems={chatItems}
         setActiveChat={setActiveChat}
         setLoading={setLoading}
       />
-      <ChatArea chat={activeChat} setActiveChat={setActiveChat} />
+      <ChatArea
+        chat={activeChat}
+        setActiveChat={setActiveChat}
+        messages={messages}
+        setMessages={setMessages}
+      />
     </HomeWrapper>
   );
 };

@@ -1,12 +1,12 @@
 import ChatBar from './components/ChatBar';
 import styled from 'styled-components';
 import Chat from './components/Chat';
-import { ChatType, MessageType } from './models/Chat';
+import { ChatType, Messages, MessageType } from './models/Chat';
 import ActiveChatHeader from './components/ActiveChatHeader';
 import useWebSocket from '../hooks/UseWebSocket';
 import { useAuth } from '../context/AuthContext';
 import { OutboundMessage } from '../models/socket';
-import { Dispatch, useEffect } from 'react';
+import { Dispatch, useEffect, useRef } from 'react';
 
 const MessageArea = styled.div`
   height: 100%;
@@ -27,12 +27,19 @@ const ChatAreaWrapper = styled.div`
 interface ChatAreaProps {
   chat: ChatType;
   setActiveChat: Dispatch<React.SetStateAction<ChatType>>;
+  messages: Messages;
+  setMessages: Dispatch<React.SetStateAction<Messages>>;
 }
 
 const ChatArea = (props: ChatAreaProps) => {
-  const { ws, messages: wsMessages } = useWebSocket();
+  const { chat, setMessages, messages } = props;
+  const { sendMessage: send } = useWebSocket({ setMessages: setMessages });
 
-  const { chat, setActiveChat } = props;
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const { user } = useAuth();
 
@@ -43,39 +50,17 @@ const ChatArea = (props: ChatAreaProps) => {
     return false;
   };
 
-  // When the user loads the page load their most recent chat
-  // As the user clicks each user (whether this be from the populated side bar or search feature)
-  // Fetch recent message history and update chat area state to contain messages
-  // Ensure that sendMessage function uses the correct id for messages
-  // When the user recieves a message, update the state, appending it to the message history
-  // If the user is does not have the chat selected, update the chat preview to be at the top of the chatList
-  // with the most recent message previewed
-
-  useEffect(() => {
-    setActiveChat((prevActive) => {
-      return {
-        ...prevActive,
-        messages: [...prevActive.messages, ...wsMessages],
-      };
-    });
-  }, [wsMessages]);
-
   const sendMessage = (message: string) => {
-    if (ws && ws.readyState === WebSocket.OPEN && user) {
+    if (user) {
       const toSend: OutboundMessage = {
         type: MessageType.TEXT,
         from: user.id,
         to: chat.recepient.id,
         content: message,
       };
-      ws.send(JSON.stringify(toSend));
 
-      setActiveChat((prevActive) => {
-        return {
-          ...prevActive,
-          messages: [...prevActive.messages, toSend],
-        };
-      });
+      send(toSend);
+      setMessages((prevMessages) => [...prevMessages, toSend]);
     }
   };
 
@@ -83,7 +68,7 @@ const ChatArea = (props: ChatAreaProps) => {
     <ChatAreaWrapper>
       <ActiveChatHeader recepient={props.chat.recepient} />
       <MessageArea>
-        {chat.messages.map((message, index) => {
+        {messages.map((message, index) => {
           return (
             <Chat
               isSent={isSent(message.from)}
@@ -92,6 +77,7 @@ const ChatArea = (props: ChatAreaProps) => {
             />
           );
         })}
+        <div ref={messagesEndRef} />
       </MessageArea>
       <ChatBar addMessage={sendMessage} />
     </ChatAreaWrapper>

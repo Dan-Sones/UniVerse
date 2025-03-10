@@ -1,5 +1,4 @@
 export type ChatType = {
-  messages: Messages;
   recepient: ChatRecepient;
 };
 
