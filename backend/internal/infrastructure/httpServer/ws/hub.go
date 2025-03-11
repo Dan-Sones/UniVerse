@@ -5,6 +5,7 @@ import (
 	"backend/internal/services"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/rs/zerolog"
 	"sync"
@@ -37,12 +38,15 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
+			h.logger.Info().Msg(fmt.Sprintf("Registering client with userId %d", client.UserID))
 			h.mu.Lock()
 			h.Clients[client.UserID] = client
 			h.mu.Unlock()
 		case client := <-h.Unregister:
 			h.mu.Lock()
 			if _, exists := h.Clients[client.UserID]; exists {
+				h.logger.Info().Msg(fmt.Sprintf("closing connection on client with userId %d", client.UserID))
+
 				delete(h.Clients, client.UserID)
 				close(client.Send)
 			}

@@ -1,14 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
+import { Dispatch, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-import { InboundMessage } from '../models/socket';
+import { InboundMessage, OutboundMessage } from '../models/socket';
+import { Messages } from '../home/models/Chat';
+export const WS_BASE_URL: string = import.meta.env.VITE_API_BASE_URL + '/ws';
 
-export const WS_BASE_URL: string = import.meta.env.VITE_WS_BASE_URL;
+interface UseWebSocketProps {
+  setMessages: Dispatch<React.SetStateAction<Messages>>;
+}
 
-const useWebSocket = () => {
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const [messages, setMessages] = useState<InboundMessage[]>([]);
+const useWebSocket = (props: UseWebSocketProps) => {
+  const { setMessages } = props;
   const { authenticated } = useAuth();
+
+  const socketRef = useRef<WebSocket | null>(null);
 
   const isMounted = useRef(true);
 
@@ -20,15 +25,27 @@ const useWebSocket = () => {
       return;
     }
 
-    const socket = new WebSocket('ws://localhost:80/ws');
+    if (!socketRef.current) {
+      const socket = new WebSocket(WS_BASE_URL);
+      socketRef.current = socket;
 
-    socket.onopen = () => {
-      console.log('WebSocket connected ✅');
-    };
+      socket.onopen = () => {
+        console.log('WebSocket connected ✅');
+      };
 
-    socket.onmessage = (event) => {
-      if (!isMounted.current) return;
+      socket.onclose = () => {
+        console.log('WebSocket closed ❌');
+      };
 
+      socket.onerror = (error) => {
+        console.error('WebSocket error:');
+        console.log(error);
+      };
+    }
+
+    socketRef.current.onmessage = null;
+
+    socketRef.current.onmessage = (event) => {
       try {
         const parsedMessage: InboundMessage = JSON.parse(event.data);
         console.log('Message received:', parsedMessage);
@@ -38,34 +55,22 @@ const useWebSocket = () => {
       }
     };
 
-    socket.onclose = () => {
-      console.log('WebSocket closed ❌');
-    };
-
-    socket.onerror = (error) => {
-      console.error('WebSocket error:');
-      console.log(error);
-    };
-
-    setWs(socket);
-
     return () => {
-      isMounted.current = false; // Prevent updates on unmounted components
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close();
+      if (socketRef.current) {
+        socketRef.current.onmessage = null;
+        socketRef.current.close();
+        socketRef.current = null;
       }
     };
-  }, []);
+  }, [authenticated]);
 
-  const sendMessage = (message: InboundMessage) => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(message));
-    } else {
-      console.warn('WebSocket is not open!');
+  const sendMessage = (message: OutboundMessage) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(message));
     }
   };
 
-  return { ws, messages, sendMessage };
+  return { sendMessage };
 };
 
 export default useWebSocket;

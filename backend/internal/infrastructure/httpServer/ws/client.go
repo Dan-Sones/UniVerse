@@ -22,9 +22,11 @@ func (c *Client) ReadMessages() {
 	for {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
-			//TODO: Handle error
+			log.Println("Oh poop!:", err)
 			break
 		}
+
+		log.Println("YOOO we got a message")
 
 		var messageStruct chat.InboundMessage
 		err = json.Unmarshal(message, &messageStruct)
@@ -32,6 +34,8 @@ func (c *Client) ReadMessages() {
 			log.Println("Error marshalling message!")
 			break
 		}
+
+		log.Println(messageStruct)
 
 		c.Hub.Broadcast <- messageStruct
 	}

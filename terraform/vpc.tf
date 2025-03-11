@@ -142,3 +142,18 @@ resource "aws_route_table_association" "private_subnet_2_association" {
   subnet_id      = aws_subnet.ecs_private_subnet_2.id
   route_table_id = aws_route_table.private_rt.id
 }
+
+
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = aws_vpc.chat_vpc.id
+  service_name      = "com.amazonaws.us-east-1.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.private_rt.id]
+}
+
+resource "aws_route" "dynamo_endpoint" {
+  route_table_id         = aws_route_table.private_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_vpc_endpoint.dynamodb.id
+
+}

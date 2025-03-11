@@ -78,12 +78,40 @@ resource "aws_security_group" "alb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+
+
+resource "aws_security_group" "dynamo_sg" {
+  name   = "dynamo-security-group"
+  vpc_id = aws_vpc.chat_vpc.id
+
+}
+
+resource "aws_security_group_rule" "allow_ecs_to_dynamo" {
+  security_group_id = aws_security_group.dynamo_sg.id
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = [aws_subnet.ecs_private_subnet_1.cidr_block, aws_subnet.ecs_private_subnet_2.cidr_block]
+
+
+
+
 }
 
 resource "aws_security_group_rule" "allow_dev_ssh_to_bastion" {

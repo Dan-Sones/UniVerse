@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"log"
@@ -8,6 +9,7 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
+	EnableCompression: true,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -20,6 +22,7 @@ func ServeWS(hub *Hub, c *gin.Context) {
 		log.Println(err)
 		return
 	}
+	hub.logger.Info().Msg(fmt.Sprintf("websocket upgrade connected to %s", c.Request.RemoteAddr))
 
 	context := c.Request.Context()
 
@@ -29,7 +32,7 @@ func ServeWS(hub *Hub, c *gin.Context) {
 	client := &Client{
 		UserID: userID,
 		Conn:   conn,
-		Send:   make(chan []byte, 256),
+		Send:   make(chan []byte, 1024),
 		Hub:    hub,
 	}
 

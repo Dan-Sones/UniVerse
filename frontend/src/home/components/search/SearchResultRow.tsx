@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { SearchResult } from '../SearchArea';
 import { Avatar } from '@mui/material';
 import { useState } from 'react';
 import { ChatRecepient } from '../../models/Chat';
@@ -17,7 +16,7 @@ const SearchResultRowWrapper = styled.div<{ hover?: boolean }>`
 
 interface SearchResultProps {
   data: ChatRecepient;
-  onClick: (result: SearchResult) => void;
+  onClick: (result: ChatRecepient) => void;
 }
 
 const SearchResultRow = (props: SearchResultProps) => {

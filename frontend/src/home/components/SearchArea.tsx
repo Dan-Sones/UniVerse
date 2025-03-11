@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useDebounce } from 'use-debounce';
 import { CircularProgress } from '@mui/material';
 import { ChatRecepient } from '../models/Chat';
-import ChatQueryMethods from '../../api/queries/ChatQueries';
+import ChatQueryMethods from '../../api/queries/chatQueries';
 
 const SearchAreaWrapper = styled.div`
   padding-top: 21px;
