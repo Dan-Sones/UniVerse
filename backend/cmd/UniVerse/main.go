@@ -1,8 +1,10 @@
 package main
 
 import (
-	"backend/internal/infrastructure/db"
+	"backend/internal/infrastructure/dynamo"
 	routes2 "backend/internal/infrastructure/httpServer/api/routes"
+	"backend/internal/infrastructure/postgres"
+	"backend/internal/infrastructure/redis"
 	"context"
 	_ "embed"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -21,32 +23,31 @@ func runInitScript(db *pgxpool.Pool) error {
 	return err
 }
 
-//func loadEnv() {
-//	env := os.Getenv("GO_ENV")
-//
-//	var envFile string
-//	switch env {
-//	case "dev":
-//		envFile = ".env.dev"
-//	default:
-//		envFile = ".env.prod"
-//	}
-//
-//	if err := godotenv.Load(envFile); err != nil {
-//		log.Fatalf("Error loading %s file: %v", envFile, err)
-//	}
-//}
+func loadEnv() {
+	if err := godotenv.Load(".env.dev"); err != nil {
+		log.Fatalf("Error loading %s file: %v", ".env.dev", err)
+	}
+}
 
 func main() {
 
+	if os.Getenv("GO_ENV") != "production" {
+		loadEnv()
+	}
+
 	logger := zerolog.New(os.Stdout)
 
-	_ = godotenv.Load()
-	pool, err := db.NewDBPOOL()
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+	pg := postgres.Postgres{
+		Logger: &logger,
 	}
-	defer pool.Close()
+
+	err := pg.NewDBPOOL()
+	if err != nil {
+		logger.Fatal().Err(err).Msg("failed to connect to postgres")
+	} else {
+		logger.Info().Msg("connected to users postgres database")
+	}
+	defer pg.Pool.Close()
 
 	endpoint := os.Getenv("DYNAMO_ENDPOINT")
 
@@ -54,26 +55,41 @@ func main() {
 		endpoint = "http://localhost:8000"
 	}
 
-	var dynamoOptions db.ClientOptions
+	var dynamoOptions dynamo.ClientOptions
 	if os.Getenv("GO_ENV") == "production" {
-		dynamoOptions = db.GetProdConfigutration()
+		dynamoOptions = dynamo.GetProdConfigutration()
 	} else {
-		dynamoOptions = db.GetLocalConfiguration(endpoint)
-	}
-	dynamoClient, err := db.NewDynamoDBClient(dynamoOptions)
-
-	if err != nil {
-		log.Fatalf("Failed to connect to DynamoDB: %v", err)
+		dynamoOptions = dynamo.GetLocalConfiguration(endpoint)
 	}
 
-	err = runInitScript(pool)
+	dyn := &dynamo.Dynamo{
+		Logger: &logger,
+	}
+
+	err = dyn.NewDynamoDBClient(dynamoOptions)
 	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+		logger.Fatal().Err(err).Msg("failed to connect to dynamo")
+	} else {
+		logger.Info().Msg("connected to DynamoDB")
+	}
+
+	red := &redis.Redis{
+		Logger: &logger,
+	}
+
+	if err = red.Connect("localhost:6379"); err != nil {
+		logger.Fatal().Err(err).Msg("failed to connect to Redis")
+	}
+	defer red.Close()
+
+	err = runInitScript(pg.Pool)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Failed to run init script on postgres database")
 	}
 
 	router := routes2.NewRouter()
 	routing := routes2.NewRoutes(&logger)
-	routing.InitializeRoutes(router, pool, dynamoClient)
+	routing.InitializeRoutes(router, pg.Pool, dyn.Client)
 
 	err = router.Run(":80")
 	if err != nil {
