@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
+	"github.com/segmentio/kafka-go"
 )
 
 type routes struct {
@@ -15,7 +16,7 @@ type routes struct {
 }
 
 type Routes interface {
-	InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client)
+	InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client, inBoundMessagesConn *kafka.Conn)
 }
 
 func NewRoutes(logger *zerolog.Logger) Routes {
@@ -24,9 +25,9 @@ func NewRoutes(logger *zerolog.Logger) Routes {
 	}
 }
 
-func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client) {
+func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client, inBoundMessagesConn *kafka.Conn) {
 
-	hub := ws.NewHub(dynamoClient, r.Logger)
+	hub := ws.NewHub(dynamoClient, inBoundMessagesConn, r.Logger)
 	go hub.Run()
 
 	public := router.Group("/api")

@@ -25,7 +25,7 @@ func NewDBPOOL() (*pgxpool.Pool, error) {
 
 	fmt.Println(host, port, user, password, dbName)
 
-	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=require",
+	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s",
 		user, password, host, dbName)
 
 	config, err := pgxpool.ParseConfig(dsn)

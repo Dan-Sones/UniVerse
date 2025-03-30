@@ -3,6 +3,7 @@ package main
 import (
 	"backend/internal/infrastructure/db"
 	routes2 "backend/internal/infrastructure/httpServer/api/routes"
+	"backend/internal/infrastructure/kafka"
 	"context"
 	_ "embed"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -27,7 +28,7 @@ func runInitScript(db *pgxpool.Pool) error {
 //	var envFile string
 //	switch env {
 //	case "dev":
-//		envFile = ".env.dev"
+//		envFile = ".env"
 //	default:
 //		envFile = ".env.prod"
 //	}
@@ -71,9 +72,11 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
+	inboundKafkaConn := kafka.CreateInboundMessagesWriter()
+
 	router := routes2.NewRouter()
 	routing := routes2.NewRoutes(&logger)
-	routing.InitializeRoutes(router, pool, dynamoClient)
+	routing.InitializeRoutes(router, pool, dynamoClient, inboundKafkaConn)
 
 	err = router.Run(":80")
 	if err != nil {

@@ -26,7 +26,7 @@ func (s *ChatService) StoreMessage(ctx context.Context, message *chat.OutboundMe
 	theChat := chat.Message{
 		ConversationId: GenerateConversationID(message.From, message.To),
 		Timestamp:      message.Time,
-		MessageId:      generateMessageID(timestamp),
+		MessageId:      GenerateMessageID(timestamp),
 		SenderId:       message.From,
 		ReceiverId:     message.To,
 		Content:        message.Content,
@@ -57,7 +57,7 @@ func (s *ChatService) GetHistoryFor(ctx context.Context, fromId int64, toId int6
 	return conversation, nil
 }
 
-func generateMessageID(timestamp time.Time) string {
+func GenerateMessageID(timestamp time.Time) string {
 	entropy := rand.New(rand.NewSource(timestamp.UnixNano()))
 	return ulid.MustNew(ulid.Timestamp(timestamp), entropy).String()
 }
