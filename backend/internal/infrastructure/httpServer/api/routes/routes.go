@@ -16,7 +16,7 @@ type routes struct {
 }
 
 type Routes interface {
-	InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client, inBoundMessagesConn *kafka.Conn)
+	InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client, inBoundMessagesWriter *kafka.Writer)
 }
 
 func NewRoutes(logger *zerolog.Logger) Routes {
@@ -25,9 +25,9 @@ func NewRoutes(logger *zerolog.Logger) Routes {
 	}
 }
 
-func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client, inBoundMessagesConn *kafka.Conn) {
+func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client, inBoundMessagesWriter *kafka.Writer) {
 
-	hub := ws.NewHub(dynamoClient, inBoundMessagesConn, r.Logger)
+	hub := ws.NewHub(dynamoClient, inBoundMessagesWriter, r.Logger)
 	go hub.Run()
 
 	public := router.Group("/api")

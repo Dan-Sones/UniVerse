@@ -3,6 +3,7 @@ package ws
 import (
 	"backend/internal/models/chat"
 	"backend/internal/services"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -13,26 +14,26 @@ import (
 )
 
 type Hub struct {
-	Clients             map[int64]*Client
-	Broadcast           chan chat.InboundMessage
-	Register            chan *Client
-	Unregister          chan *Client
-	mu                  sync.Mutex
-	service             *services.ChatService
-	logger              *zerolog.Logger
-	inboundMessagesConn *kafka.Conn
+	Clients               map[int64]*Client
+	Broadcast             chan chat.InboundMessage
+	Register              chan *Client
+	Unregister            chan *Client
+	mu                    sync.Mutex
+	service               *services.ChatService
+	logger                *zerolog.Logger
+	inboundMessagesWriter *kafka.Writer
 }
 
-func NewHub(db *dynamodb.Client, inboundMessagesConn *kafka.Conn, logger *zerolog.Logger) *Hub {
+func NewHub(db *dynamodb.Client, inboundMessagesWriter *kafka.Writer, logger *zerolog.Logger) *Hub {
 	chatService := services.NewChatService(db, logger)
 	return &Hub{
-		Clients:             make(map[int64]*Client),
-		Broadcast:           make(chan chat.InboundMessage),
-		Register:            make(chan *Client),
-		Unregister:          make(chan *Client),
-		service:             chatService,
-		logger:              logger,
-		inboundMessagesConn: inboundMessagesConn,
+		Clients:               make(map[int64]*Client),
+		Broadcast:             make(chan chat.InboundMessage),
+		Register:              make(chan *Client),
+		Unregister:            make(chan *Client),
+		service:               chatService,
+		logger:                logger,
+		inboundMessagesWriter: inboundMessagesWriter,
 	}
 }
 
@@ -73,7 +74,7 @@ func (h *Hub) Run() {
 				h.logger.Error().Err(err).Msg("failed to marshal outbound message")
 			}
 
-			_, err = h.inboundMessagesConn.WriteMessages(kafka.Message{
+			err = h.inboundMessagesWriter.WriteMessages(context.Background(), kafka.Message{
 				Key:   []byte(services.GenerateConversationID(outboundMessage.From, message.To)),
 				Value: outboundMessageJSON,
 			})
