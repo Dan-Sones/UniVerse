@@ -1,20 +1,18 @@
 package com.universe.flink.inbound.deserializers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.universe.flink.inbound.models.InboundMessage;
+import com.universe.flink.inbound.models.Message;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 
-import java.io.IOException;
-
-public class InboundMessageDeserializer implements DeserializationSchema<InboundMessage> {
+public class InboundMessageDeserializer implements DeserializationSchema<Message> {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public InboundMessage deserialize(byte[] bytes)  {
+    public Message deserialize(byte[] bytes)  {
             String json = new String(bytes);
             try {
-                return objectMapper.readValue(json, InboundMessage.class);
+                return objectMapper.readValue(json, Message.class);
             } catch (Exception e) {
                 System.err.println("[Deserializer] Failed to parse: " + json);
                 e.printStackTrace();
@@ -23,13 +21,13 @@ public class InboundMessageDeserializer implements DeserializationSchema<Inbound
     }
 
     @Override
-    public boolean isEndOfStream(InboundMessage nextElement) {
+    public boolean isEndOfStream(Message nextElement) {
         return false;
     }
 
     @Override
-    public TypeInformation<InboundMessage> getProducedType() {
-        return TypeInformation.of(InboundMessage.class);
+    public TypeInformation<Message> getProducedType() {
+        return TypeInformation.of(Message.class);
     }
 
 

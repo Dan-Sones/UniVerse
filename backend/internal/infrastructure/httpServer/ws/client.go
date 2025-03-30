@@ -37,7 +37,7 @@ func (c *Client) ReadMessages() {
 
 		log.Println(messageStruct)
 
-		c.Hub.Broadcast <- messageStruct
+		c.Hub.IncomingFromClientDevice <- messageStruct
 	}
 }
 

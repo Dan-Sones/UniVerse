@@ -18,12 +18,21 @@
 
 package com.universe.flink.inbound;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.universe.flink.inbound.deserializers.InboundMessageDeserializer;
-import com.universe.flink.inbound.models.InboundMessage;
+import com.universe.flink.inbound.deserializers.MessageAckDeserializer;
+import com.universe.flink.inbound.functions.DeliveryAndAckProcessor;
+import com.universe.flink.inbound.models.Message;
+import com.universe.flink.inbound.models.MessageAck;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.streaming.api.datastream.ConnectedStreams;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -48,26 +57,62 @@ public class DataStreamJob {
         // Sets up the execution environment, which is the main entry point
         // to building Flink applications.
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        ObjectMapper mapper = new ObjectMapper();
 
-        KafkaSource<InboundMessage> source = KafkaSource.<InboundMessage>builder()
+        KafkaSource<Message> messageSource = KafkaSource.<Message>builder()
                 .setBootstrapServers("localhost:9092")
                 .setTopics("inbound-messages")
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.latest())
                 .setGroupId("flink-dev-test-" + UUID.randomUUID())
                 .setValueOnlyDeserializer(new InboundMessageDeserializer())
                 .build();
 
-        DataStreamSource<InboundMessage> inboundMessageDataStreamSource = env.fromSource(
-                source,
-                org.apache.flink.api.common.eventtime.WatermarkStrategy.noWatermarks(),
+        DataStreamSource<Message> inboundMessageDataStreamSource = env.fromSource(
+                messageSource,
+                WatermarkStrategy.noWatermarks(),
                 "Inbound Messages Source"
         );
+
+
+        KafkaSource<MessageAck> ackSource = KafkaSource.<MessageAck>builder()
+                .setBootstrapServers("localhost:9092")
+                .setTopics("message-ack")
+                .setStartingOffsets(OffsetsInitializer.latest())
+                .setGroupId("flink-dev-test-" + UUID.randomUUID())
+                .setValueOnlyDeserializer(new MessageAckDeserializer())
+                .build();
+
+        DataStreamSource<MessageAck> ackDataStreamSource = env.fromSource(
+                ackSource,
+                WatermarkStrategy.noWatermarks(),
+                "Ack Source"
+        );
+
+        KafkaSink<String> outboundMessagesSink = KafkaSink.<String>builder()
+                .setBootstrapServers("localhost:9092")
+                .setRecordSerializer(
+                        KafkaRecordSerializationSchema.builder()
+                                .setTopic("outbound-messages")
+                                .setValueSerializationSchema(new SimpleStringSchema())
+                                .build()
+                )
+                // EXACTLY_ONCE crashes it?
+                .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+                .build();
+
         System.out.println("🚀 Flink job started. Listening for inbound messages...");
 
 
-        inboundMessageDataStreamSource
-                .map(msg -> "[Flink] Received: " + msg)
-                .print();
+        ConnectedStreams<Message, MessageAck> connected = inboundMessageDataStreamSource
+                .keyBy(msg -> msg.messageId)
+                .connect(ackDataStreamSource.keyBy(ack -> ack.messageId));
+
+
+        DataStream<Message> resultStream = connected.process(new DeliveryAndAckProcessor());
+
+        resultStream
+                .map(mapper::writeValueAsString)
+                .sinkTo(outboundMessagesSink);
 
         env.execute("Kafka Inbound Messages Stream");
     }

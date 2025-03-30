@@ -1,7 +1,7 @@
 package com.universe.flink.inbound.models;
 
 
-public class InboundMessage {
+public class Message {
     public String messageId;
     public String type;
     public int from;
