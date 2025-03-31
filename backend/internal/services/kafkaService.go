@@ -34,14 +34,11 @@ func (ks *OutboundMessagesService) ListenForOutboundMessages(clients *map[int64]
 		var message chat.OutboundMessage
 		err = json.Unmarshal(m.Value, &message)
 
-		ks.Logger.Info().Str("message_id", message.MessageId).Msg("✅ Received outbound message in Go service")
-
-		// TODO: ONLY add to channel if we have the client connected
-		messages <- message
-
-		//if _, ok := (*clients)[message.To]; ok {
-		//}
-
+		ks.Logger.Info().Str("message_id", message.MessageId).Msg("Received message from Kafka")
+		
+		if _, ok := (*clients)[message.To]; ok {
+			messages <- message
+		}
 	}
 
 }

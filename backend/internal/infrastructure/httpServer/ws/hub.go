@@ -21,9 +21,10 @@ type Hub struct {
 	mu                       sync.RWMutex
 	logger                   *zerolog.Logger
 	inboundMessagesWriter    *kafka.Writer
+	messageAckWriter         *kafka.Writer
 }
 
-func NewHub(inboundMessagesWriter *kafka.Writer, clients *map[int64]*Client, incomingFromKafka chan chat.OutboundMessage, logger *zerolog.Logger) *Hub {
+func NewHub(inboundMessagesWriter *kafka.Writer, messageAckWriter *kafka.Writer, clients *map[int64]*Client, incomingFromKafka chan chat.OutboundMessage, logger *zerolog.Logger) *Hub {
 	return &Hub{
 		Clients:                  clients,
 		IncomingFromClientDevice: make(chan chat.InboundMessage),
@@ -32,6 +33,7 @@ func NewHub(inboundMessagesWriter *kafka.Writer, clients *map[int64]*Client, inc
 		Unregister:               make(chan *Client),
 		logger:                   logger,
 		inboundMessagesWriter:    inboundMessagesWriter,
+		messageAckWriter:         messageAckWriter,
 	}
 }
 
@@ -102,13 +104,36 @@ func (h *Hub) sendMessageToClient(message chat.OutboundMessage) {
 		h.logger.Error().Err(err)
 	}
 
+	messageAck := chat.MessageAck{
+		MessageId:  message.MessageId,
+		Delivered:  ok,
+		SenderId:   message.To,
+		ReceiverId: message.From,
+		Timestamp:  message.Time,
+		Error:      "",
+	}
+
 	if ok {
 		select {
 		case client.Send <- msgJson:
 		default:
 			h.logger.Warn().Int64("user_id", message.To).Msg("Client send buffer full. Dropping message.")
+			messageAck.Delivered = false
+			messageAck.Error = "CLIENT_BUFFER_FULL"
 		}
 	} else {
 		h.logger.Warn().Int64("user_id", message.To).Msg("Client not connected. Cannot deliver message.")
+		messageAck.Delivered = false
+		messageAck.Error = "CLIENT_NOT_CONNECTED"
 	}
+
+	messageAckJSON, err := json.Marshal(messageAck)
+	if err != nil {
+		h.logger.Error().Err(err).Msg("failed to marshal message ack")
+	}
+
+	err = h.messageAckWriter.WriteMessages(context.Background(), kafka.Message{
+		Key:   []byte(message.MessageId),
+		Value: messageAckJSON,
+	})
 }

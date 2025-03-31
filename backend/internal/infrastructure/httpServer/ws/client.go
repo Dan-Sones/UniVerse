@@ -26,8 +26,6 @@ func (c *Client) ReadMessages() {
 			break
 		}
 
-		log.Println("YOOO we got a message")
-
 		var messageStruct chat.InboundMessage
 		err = json.Unmarshal(message, &messageStruct)
 		if err != nil {
