@@ -52,6 +52,12 @@ under the License.
 	</repositories>
 
 	<dependencies>
+		<!-- DynamoDB -->
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-dynamodb</artifactId>
+			<version>1.12.656</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -122,8 +128,8 @@ under the License.
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
 				<configuration>
-					<source>${target.java.version}</source>
-					<target>${target.java.version}</target>
+					<source>9</source>
+					<target>9</target>
 				</configuration>
 			</plugin>
 

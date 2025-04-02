@@ -21,9 +21,10 @@ package com.universe.flink.inbound;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.universe.flink.inbound.deserializers.InboundMessageDeserializer;
 import com.universe.flink.inbound.deserializers.MessageAckDeserializer;
-import com.universe.flink.inbound.functions.DeliveryAndAckProcessor;
+import com.universe.flink.inbound.processors.DeliveryAndAckProcessor;
 import com.universe.flink.inbound.models.Message;
 import com.universe.flink.inbound.models.MessageAck;
+import com.universe.flink.inbound.processors.DynamoWriter;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.connector.base.DeliveryGuarantee;
@@ -54,6 +55,13 @@ import java.util.UUID;
 public class DataStreamJob {
 
     public static void main(String[] args) throws Exception {
+
+
+//        ListTablesResult listTablesResult = dynamoDB.listTables();
+//        System.out.println("DynamoDB Tables:");
+//        listTablesResult.getTableNames().forEach(System.out::println);
+
+
         // Sets up the execution environment, which is the main entry point
         // to building Flink applications.
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -103,12 +111,14 @@ public class DataStreamJob {
         System.out.println("🚀 Flink job started. Listening for inbound messages...");
 
 
-        ConnectedStreams<Message, MessageAck> connected = inboundMessageDataStreamSource
+        ConnectedStreams<Message, MessageAck> connected = inboundMessageDataStreamSource.process(new DynamoWriter())
                 .keyBy(msg -> msg.messageId)
                 .connect(ackDataStreamSource.keyBy(ack -> ack.messageId));
 
 
-        DataStream<Message> resultStream = connected.process(new DeliveryAndAckProcessor());
+
+        DataStream<Message> resultStream = connected
+                .process(new DeliveryAndAckProcessor());
 
         resultStream
                 .map(mapper::writeValueAsString)

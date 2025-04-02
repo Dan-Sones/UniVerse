@@ -1,16 +1,17 @@
 package com.universe.flink.inbound.models;
 
-
 public class Message {
+    public String conversationId;
+    public String timestamp;
     public String messageId;
-    public String type;
-    public int from;
-    public int to;
+    public long senderId;
+    public long  receiverId;
     public String content;
-    public String time;
+    public MessageType messageType;
+    public MessageStatus status;
 
     @Override
     public String toString() {
-        return "[" + type + "] From " + from + " to " + to + ": " + content;
+        return "[" + messageType + "] From " + senderId + " to " + receiverId + ": " + content;
     }
 }

@@ -1,4 +1,4 @@
-package com.universe.flink.inbound.functions;
+package com.universe.flink.inbound.processors;
 
 import com.universe.flink.inbound.models.DeliveryStatus;
 import com.universe.flink.inbound.models.Message;

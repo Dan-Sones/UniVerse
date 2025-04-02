@@ -15,7 +15,7 @@ import (
 type Hub struct {
 	Clients                  *map[int64]*Client
 	IncomingFromClientDevice chan chat.InboundMessage
-	IncomingFromKafka        chan chat.OutboundMessage
+	IncomingFromKafka        chan chat.Message
 	Register                 chan *Client
 	Unregister               chan *Client
 	mu                       sync.RWMutex
@@ -24,7 +24,7 @@ type Hub struct {
 	messageAckWriter         *kafka.Writer
 }
 
-func NewHub(inboundMessagesWriter *kafka.Writer, messageAckWriter *kafka.Writer, clients *map[int64]*Client, incomingFromKafka chan chat.OutboundMessage, logger *zerolog.Logger) *Hub {
+func NewHub(inboundMessagesWriter *kafka.Writer, messageAckWriter *kafka.Writer, clients *map[int64]*Client, incomingFromKafka chan chat.Message, logger *zerolog.Logger) *Hub {
 	return &Hub{
 		Clients:                  clients,
 		IncomingFromClientDevice: make(chan chat.InboundMessage),
@@ -55,14 +55,17 @@ func (h *Hub) Run() {
 			h.mu.Unlock()
 		case message := <-h.IncomingFromClientDevice:
 			messageId := utils.GenerateMessageID(time.Now())
+			conversationId := utils.GenerateConversationID(message.From, message.To)
 			sentTime := time.Now()
-			outboundMessage := chat.OutboundMessage{
-				Type:      message.Type,
-				From:      message.From,
-				To:        message.To,
-				Content:   message.Content,
-				MessageId: messageId,
-				Time:      sentTime.Format(time.RFC3339),
+			outboundMessage := chat.Message{
+				SenderId:       message.From,
+				ReceiverId:     message.To,
+				Content:        message.Content,
+				MessageId:      messageId,
+				Timestamp:      sentTime.Format(time.RFC3339),
+				ConversationId: conversationId,
+				MessageType:    "TEXT",
+				Status:         chat.StatusPreEmptive,
 			}
 
 			outboundMessageJSON, err := json.Marshal(outboundMessage)
@@ -71,7 +74,7 @@ func (h *Hub) Run() {
 			}
 
 			err = h.inboundMessagesWriter.WriteMessages(context.Background(), kafka.Message{
-				Key:   []byte(utils.GenerateConversationID(outboundMessage.From, message.To)),
+				Key:   []byte(conversationId),
 				Value: outboundMessageJSON,
 			})
 			if err != nil {
@@ -85,8 +88,8 @@ func (h *Hub) Run() {
 	}
 }
 
-func (h *Hub) sendMessageToClient(message chat.OutboundMessage) {
-	t1, err := time.Parse(time.RFC3339, message.Time)
+func (h *Hub) sendMessageToClient(message chat.Message) {
+	t1, err := time.Parse(time.RFC3339, message.Timestamp)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("Invalid time format in outbound message")
 		return
@@ -96,7 +99,7 @@ func (h *Hub) sendMessageToClient(message chat.OutboundMessage) {
 	h.logger.Info().Str("message_id", message.MessageId).Dur("latency", diff).Msg("Outbound message latency")
 
 	h.mu.RLock()
-	client, ok := (*h.Clients)[message.To]
+	client, ok := (*h.Clients)[message.ReceiverId]
 	h.mu.RUnlock()
 
 	msgJson, err := json.Marshal(message)
@@ -107,9 +110,9 @@ func (h *Hub) sendMessageToClient(message chat.OutboundMessage) {
 	messageAck := chat.MessageAck{
 		MessageId:  message.MessageId,
 		Delivered:  ok,
-		SenderId:   message.To,
-		ReceiverId: message.From,
-		Timestamp:  message.Time,
+		SenderId:   message.SenderId,
+		ReceiverId: message.ReceiverId,
+		Timestamp:  message.Timestamp,
 		Error:      "",
 	}
 
@@ -117,12 +120,12 @@ func (h *Hub) sendMessageToClient(message chat.OutboundMessage) {
 		select {
 		case client.Send <- msgJson:
 		default:
-			h.logger.Warn().Int64("user_id", message.To).Msg("Client send buffer full. Dropping message.")
+			h.logger.Warn().Int64("user_id", message.ReceiverId).Msg("Client send buffer full. Dropping message.")
 			messageAck.Delivered = false
 			messageAck.Error = "CLIENT_BUFFER_FULL"
 		}
 	} else {
-		h.logger.Warn().Int64("user_id", message.To).Msg("Client not connected. Cannot deliver message.")
+		h.logger.Warn().Int64("user_id", message.ReceiverId).Msg("Client not connected. Cannot deliver message.")
 		messageAck.Delivered = false
 		messageAck.Error = "CLIENT_NOT_CONNECTED"
 	}

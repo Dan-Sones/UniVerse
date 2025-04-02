@@ -21,7 +21,7 @@ func NewKafkaService(reader *kafka.Reader, logger *zerolog.Logger) *OutboundMess
 	}
 }
 
-func (ks *OutboundMessagesService) ListenForOutboundMessages(clients *map[int64]*ws.Client, messages chan chat.OutboundMessage) {
+func (ks *OutboundMessagesService) ListenForOutboundMessages(clients *map[int64]*ws.Client, messages chan chat.Message) {
 
 	defer ks.KafkaReader.Close()
 
@@ -31,12 +31,12 @@ func (ks *OutboundMessagesService) ListenForOutboundMessages(clients *map[int64]
 			ks.Logger.Error().Err(err).Msg("error reading message")
 		}
 
-		var message chat.OutboundMessage
+		var message chat.Message
 		err = json.Unmarshal(m.Value, &message)
 
 		ks.Logger.Info().Str("message_id", message.MessageId).Msg("Received message from Kafka")
-		
-		if _, ok := (*clients)[message.To]; ok {
+
+		if _, ok := (*clients)[message.ReceiverId]; ok {
 			messages <- message
 		}
 	}

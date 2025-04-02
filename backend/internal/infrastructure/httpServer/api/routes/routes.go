@@ -44,7 +44,7 @@ func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dyna
 
 	clients := make(map[int64]*ws.Client)
 
-	outboundMessages := make(chan chat.OutboundMessage, 10000)
+	outboundMessages := make(chan chat.Message, 10000)
 
 	hub := ws.NewHub(inboundKafkaConn, messageAckConn, &clients, outboundMessages, r.Logger)
 	go hub.Run()
