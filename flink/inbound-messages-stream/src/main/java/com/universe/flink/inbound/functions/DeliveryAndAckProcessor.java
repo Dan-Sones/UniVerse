@@ -72,6 +72,7 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
             System.out.println("[State] MessageID=" + messageAck.messageId + " delivered!");
             deliveryState.clear();
             backOffTimeState.clear();
+            messageState.clear();
         } else {
             System.out.println("[State] MessageID=" + messageAck.messageId + " ERROR: " + messageAck.error);
             backOffDelay = Math.min(backOffDelay * 2, 60000L);

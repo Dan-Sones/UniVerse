@@ -1,27 +1,19 @@
 #!/bin/bash
 
-kafka-topics --bootstrap-server localhost:9092 \
-  --create --if-not-exists \
-  --topic inbound-messages \
-  --replication-factor 1 \
-  --partitions 1
+SHORT_RETENTION_MS=15000
 
+create_topic() {
+  local topic=$1
+  kafka-topics --bootstrap-server localhost:9092 \
+    --create --if-not-exists \
+    --topic "$topic" \
+    --replication-factor 1 \
+    --partitions 1 \
+    --config retention.ms=$SHORT_RETENTION_MS
 
-echo "Kafka topic 'inbound-messages' created."
+  echo "Kafka topic '$topic' created with ${SHORT_RETENTION_MS}ms retention."
+}
 
-kafka-topics --bootstrap-server localhost:9092 \
-  --create --if-not-exists \
-  --topic outbound-messages \
-  --replication-factor 1 \
-  --partitions 1
-
-echo "Kafka topic 'outbound-messages' created."
-
-
-kafka-topics --bootstrap-server localhost:9092 \
-  --create --if-not-exists \
-  --topic message-ack \
-  --replication-factor 1 \
-  --partitions 1
-
-echo "Kafka topic 'message-ack' created."
+create_topic inbound-messages
+create_topic outbound-messages
+create_topic message-ack
