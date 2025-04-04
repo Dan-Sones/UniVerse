@@ -24,7 +24,7 @@ import com.universe.flink.inbound.deserializers.MessageAckDeserializer;
 import com.universe.flink.inbound.processors.DeliveryAndAckProcessor;
 import com.universe.flink.inbound.models.Message;
 import com.universe.flink.inbound.models.MessageAck;
-import com.universe.flink.inbound.processors.DynamoWriter;
+import com.universe.flink.inbound.sinks.AsyncDynamoDBSink;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.connector.base.DeliveryGuarantee;
@@ -32,12 +32,11 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
-import org.apache.flink.streaming.api.datastream.ConnectedStreams;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -110,8 +109,18 @@ public class DataStreamJob {
 
         System.out.println("🚀 Flink job started. Listening for inbound messages...");
 
+        AsyncDataStream.unorderedWait(
+                inboundMessageDataStreamSource,
+                new AsyncDynamoDBSink(),
+                5,
+                TimeUnit.SECONDS,
+                100
+        )
+        .name("Async DynamoDB Sink")
+        .disableChaining();
 
-        ConnectedStreams<Message, MessageAck> connected = inboundMessageDataStreamSource.process(new DynamoWriter())
+
+        ConnectedStreams<Message, MessageAck> connected = inboundMessageDataStreamSource
                 .keyBy(msg -> msg.messageId)
                 .connect(ackDataStreamSource.keyBy(ack -> ack.messageId));
 
