@@ -1,14 +1,36 @@
 package com.universe.flink.inbound.models;
 
 public class MessageAck {
-    public String messageId;
-    public boolean delivered;
-    public String timestamp;
-    public MessageError error;
-    public String senderId;
-    public String receiverId;
+    private String messageId;
+    private boolean delivered;
+    private String timestamp;
+    private MessageError error;
+    private String senderId;
+    private String receiverId;
 
+    public String getMessageId() {
+        return messageId;
+    }
 
+    public boolean isDelivered() {
+        return delivered;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public MessageError getError() {
+        return error;
+    }
+
+    public String getSenderId() {
+        return senderId;
+    }
+
+    public String getReceiverId() {
+        return receiverId;
+    }
 
     public MessageAck() {}
 }

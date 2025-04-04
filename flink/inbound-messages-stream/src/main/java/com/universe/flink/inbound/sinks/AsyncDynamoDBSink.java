@@ -27,69 +27,41 @@ public class AsyncDynamoDBSink extends RichAsyncFunction<Message, Void> {
     @Override
     public void asyncInvoke(Message message, ResultFuture<Void> resultFuture) throws Exception {
         Map<String, AttributeValue> messageItem = Map.of(
-                "messageId", new AttributeValue(message.messageId),
-                "conversationId", new AttributeValue(message.conversationId),
-                "senderId", new AttributeValue().withN(String.valueOf(message.senderId)),
-                "receiverId", new AttributeValue().withN(String.valueOf(message.receiverId)),
-                "timestamp", new AttributeValue(message.timestamp),
-                "content", new AttributeValue(message.content),
-                "messageType", new AttributeValue(message.messageType.toString()),
-                "status", new AttributeValue(message.status.toString())
+                "messageId", new AttributeValue(message.getMessageId()),
+                "conversationId", new AttributeValue(message.getConversationId()),
+                "senderId", new AttributeValue().withN(String.valueOf(message.getSenderId())),
+                "receiverId", new AttributeValue().withN(String.valueOf(message.getReceiverId())),
+                "timestamp", new AttributeValue(message.getTimestamp()),
+                "content", new AttributeValue(message.getContent()),
+                "messageType", new AttributeValue(message.getMessageType().toString()),
+                "status", new AttributeValue(message.getStatus().toString())
         );
 
-        if (message.status == MessageStatus.PREEMPTIVE) {
-            PutItemRequest putItemRequest = new PutItemRequest()
-                    .withTableName("messages")
-                    .withItem(messageItem);
+        PutItemRequest putItemRequest = new PutItemRequest()
+                .withTableName("messages")
+                .withItem(messageItem);
 
-            dynamoDBClient.putItemAsync(putItemRequest, new AsyncHandler<PutItemRequest, PutItemResult>() {
-                @Override
-                public void onError(Exception e) {
-                    resultFuture.completeExceptionally(e);
-                }
+        dynamoDBClient.putItemAsync(putItemRequest, new AsyncHandler<PutItemRequest, PutItemResult>() {
+            @Override
+            public void onError(Exception e) {
+                resultFuture.completeExceptionally(e);
+            }
 
-                @Override
-                public void onSuccess(PutItemRequest request, PutItemResult result) {
-                    resultFuture.complete(Collections.singleton(null));
-                }
-            });
-
-        } else if (message.status == MessageStatus.DELIVERED) {
-            Map<String, AttributeValue> key = Map.of(
-                    "messageId", new AttributeValue(message.messageId),
-                    "conversationId", new AttributeValue(message.conversationId)
-            );
-
-            Map<String, AttributeValueUpdate> updates = Map.of("status", new AttributeValueUpdate()
-                    .withValue(new AttributeValue()
-                            .withS(message.status.toString()))
-                    .withAction(AttributeAction.PUT));
-
-            UpdateItemRequest request = new UpdateItemRequest()
-                    .withTableName("messages")
-                    .withKey(key)
-                    .withAttributeUpdates(updates);
-
-
-            dynamoDBClient.updateItemAsync(request, new AsyncHandler<UpdateItemRequest, UpdateItemResult>() {
-                @Override
-                public void onError(Exception e) {
-                    resultFuture.completeExceptionally(e);
-                }
-
-                @Override
-                public void onSuccess(UpdateItemRequest request, UpdateItemResult updateItemResult) {
-                    resultFuture.complete(Collections.singleton(null));
-                }
-            });
-
-        }
+            @Override
+            public void onSuccess(PutItemRequest request, PutItemResult result) {
+                resultFuture.complete(Collections.singleton(null));
+            }
+        });
 
 
     }
 
     @Override
     public void timeout(Message input, ResultFuture<Void> resultFuture) throws Exception {
-        resultFuture.completeExceptionally(new TimeoutException("Write timed out for messageId=" + input.messageId));
+        // Create a specific timeout exception with the message ID
+        TimeoutException timeoutException = new TimeoutException("Write timed out for messageId=" + input.getMessageId() + "with status: " + input.getStatus());
+
+        // Complete the future exceptionally with the timeout exception
+        resultFuture.completeExceptionally(timeoutException);
     }
 }

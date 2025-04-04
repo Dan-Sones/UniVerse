@@ -21,6 +21,7 @@ package com.universe.flink.inbound;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.universe.flink.inbound.deserializers.InboundMessageDeserializer;
 import com.universe.flink.inbound.deserializers.MessageAckDeserializer;
+import com.universe.flink.inbound.models.MessageStatus;
 import com.universe.flink.inbound.processors.DeliveryAndAckProcessor;
 import com.universe.flink.inbound.models.Message;
 import com.universe.flink.inbound.models.MessageAck;
@@ -32,6 +33,7 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -109,29 +111,20 @@ public class DataStreamJob {
 
         System.out.println("🚀 Flink job started. Listening for inbound messages...");
 
-        AsyncDataStream.unorderedWait(
-                        inboundMessageDataStreamSource,
-                        new AsyncDynamoDBSink(),
-                        5,
-                        TimeUnit.SECONDS,
-                        100
-                )
-                .name("Async DynamoDB Pre-Emptive Sink")
-                .disableChaining();
-
-
         ConnectedStreams<Message, MessageAck> connected = inboundMessageDataStreamSource
-                .keyBy(msg -> msg.messageId)
-                .connect(ackDataStreamSource.keyBy(ack -> ack.messageId));
+                .keyBy(msg -> msg.getMessageId())
+                .connect(ackDataStreamSource.keyBy(ack -> ack.getMessageId()));
 
 
         DataStream<Message> resultStream = connected
                 .process(new DeliveryAndAckProcessor());
 
 
-        // Update Status to Delivered
+        SingleOutputStreamOperator<Message> DeliveredAndFailedMessages = resultStream.filter(msg -> msg.getStatus() == MessageStatus.FAILED || msg.getStatus() == MessageStatus.DELIVERED)
+                .name("DeliveredAndFailedMessages");
+
         AsyncDataStream.unorderedWait(
-                        resultStream,
+                        DeliveredAndFailedMessages,
                         new AsyncDynamoDBSink(),
                         5,
                         TimeUnit.SECONDS,

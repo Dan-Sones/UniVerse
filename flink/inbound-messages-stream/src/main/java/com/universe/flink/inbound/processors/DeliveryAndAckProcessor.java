@@ -13,12 +13,12 @@ import org.apache.flink.util.Collector;
 import java.time.Instant;
 
 public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageAck, Message> {
-    private  transient ValueState<DeliveryStatus> deliveryState;
+    private transient ValueState<DeliveryStatus> deliveryState;
     private transient ValueState<Message> messageState;
-    private  transient ValueState<Long> backOffTimeState;
+    private transient ValueState<Long> backOffTimeState;
 
     @Override
-    public void open(Configuration parameters)  {
+    public void open(Configuration parameters) {
         ValueStateDescriptor<DeliveryStatus> descriptor = new ValueStateDescriptor<>("deliveryStatus", DeliveryStatus.class);
         deliveryState = getRuntimeContext().getState(descriptor);
 
@@ -50,15 +50,14 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
 
         deliveryState.update(currentDeliveryStatus);
 
-        System.out.printf("[State] MessageID=%s => %s%n", inboundMessage.messageId, currentDeliveryStatus);
 
-        inboundMessage.status = MessageStatus.DELIVERED;
+        System.out.printf("[State] MessageID=%s => %s%n", inboundMessage.getMessageId(), currentDeliveryStatus);
         collector.collect(inboundMessage);
-
     }
 
     @Override
-    public void processElement2(MessageAck messageAck, CoProcessFunction<Message, MessageAck, Message>.Context context, Collector<Message> collector) throws Exception {    DeliveryStatus status = deliveryState.value();
+    public void processElement2(MessageAck messageAck, CoProcessFunction<Message, MessageAck, Message>.Context context, Collector<Message> collector) throws Exception {
+        DeliveryStatus status = deliveryState.value();
         Long backOffDelay = backOffTimeState.value();
 
         if (status == null) {
@@ -69,20 +68,31 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
             backOffDelay = 1000L;
         }
 
-        if (messageAck.delivered) {
+        if (messageAck.isDelivered()) {
+            System.out.println("[State] MessageID=" + messageAck.getMessageId() + " delivered!");
+
+            Message currentMessage = messageState.value();
+            if (currentMessage != null) {
+                currentMessage.setStatus(MessageStatus.DELIVERED);
+                // Collect before clearing state
+                collector.collect(currentMessage);
+            }
+
+            // Clear all state after collection
             status.delivered = true;
-            System.out.println("[State] MessageID=" + messageAck.messageId + " delivered!");
+            deliveryState.update(status);  // Update status before clearing
+
+            // Clear all states at once
             deliveryState.clear();
             backOffTimeState.clear();
             messageState.clear();
         } else {
-            System.out.println("[State] MessageID=" + messageAck.messageId + " ERROR: " + messageAck.error);
+            System.out.println("[State] MessageID=" + messageAck.getMessageId() + " ERROR: " + messageAck.getError());
             backOffDelay = Math.min(backOffDelay * 2, 60000L);
             backOffTimeState.update(backOffDelay);
+            deliveryState.update(status);  // Update status before registering timer
             context.timerService().registerProcessingTimeTimer(context.timerService().currentProcessingTime() + backOffDelay);
         }
-
-        deliveryState.update(status);
     }
 
     @Override
@@ -91,16 +101,22 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
         Message CurrentMessage = messageState.value();
         if (status != null && !status.delivered) {
 
-            if(status.deliveryAttempts > 10) {
+            if (status.deliveryAttempts > 10) {
                 // If we tried to deliver 10 times and failed, stop trying
                 // it will be stored in the db anyway
-                System.out.println("[State] MessageID=" + CurrentMessage.messageId + " ERROR: Max delivery attempts reached.");
+                System.out.println("[State] MessageID=" + CurrentMessage.getMessageId() + " ERROR: Max delivery attempts reached.");
+                CurrentMessage.setStatus(MessageStatus.FAILED);
+
+                messageState.update(CurrentMessage);
+
+                out.collect(messageState.value());
+
                 deliveryState.clear();
                 messageState.clear();
                 return;
             }
 
-            System.out.printf("[State] Resending MessageID=%s => %s%n", CurrentMessage.messageId, status);
+            System.out.printf("[State] Resending MessageID=%s => %s%n", CurrentMessage.getMessageId(), status);
             status.deliveryAttempts += 1;
             status.lastDeliveryAttemptTime = Instant.now();
             out.collect(CurrentMessage);
