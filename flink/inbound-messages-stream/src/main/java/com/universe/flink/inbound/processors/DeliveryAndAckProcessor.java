@@ -3,6 +3,7 @@ package com.universe.flink.inbound.processors;
 import com.universe.flink.inbound.models.DeliveryStatus;
 import com.universe.flink.inbound.models.Message;
 import com.universe.flink.inbound.models.MessageAck;
+import com.universe.flink.inbound.models.MessageStatus;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.configuration.Configuration;
@@ -51,6 +52,7 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
 
         System.out.printf("[State] MessageID=%s => %s%n", inboundMessage.messageId, currentDeliveryStatus);
 
+        inboundMessage.status = MessageStatus.DELIVERED;
         collector.collect(inboundMessage);
 
     }

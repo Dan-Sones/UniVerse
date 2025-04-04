@@ -110,14 +110,14 @@ public class DataStreamJob {
         System.out.println("🚀 Flink job started. Listening for inbound messages...");
 
         AsyncDataStream.unorderedWait(
-                inboundMessageDataStreamSource,
-                new AsyncDynamoDBSink(),
-                5,
-                TimeUnit.SECONDS,
-                100
-        )
-        .name("Async DynamoDB Sink")
-        .disableChaining();
+                        inboundMessageDataStreamSource,
+                        new AsyncDynamoDBSink(),
+                        5,
+                        TimeUnit.SECONDS,
+                        100
+                )
+                .name("Async DynamoDB Pre-Emptive Sink")
+                .disableChaining();
 
 
         ConnectedStreams<Message, MessageAck> connected = inboundMessageDataStreamSource
@@ -125,10 +125,22 @@ public class DataStreamJob {
                 .connect(ackDataStreamSource.keyBy(ack -> ack.messageId));
 
 
-
         DataStream<Message> resultStream = connected
                 .process(new DeliveryAndAckProcessor());
 
+
+        // Update Status to Delivered
+        AsyncDataStream.unorderedWait(
+                        resultStream,
+                        new AsyncDynamoDBSink(),
+                        5,
+                        TimeUnit.SECONDS,
+                        100
+                )
+                .name("Async DynamoDB Delivered Update Sink")
+                .disableChaining();
+
+        // Write to kakfa
         resultStream
                 .map(mapper::writeValueAsString)
                 .sinkTo(outboundMessagesSink);
