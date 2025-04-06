@@ -8,10 +8,11 @@ import (
 )
 
 type Client struct {
-	Conn   *websocket.Conn
-	UserID int64
-	Send   chan []byte
-	Hub    *Hub
+	Conn      *websocket.Conn
+	SessionId string
+	UserID    int64
+	Send      chan []byte
+	Hub       *Hub
 }
 
 func (c *Client) ReadMessages() {

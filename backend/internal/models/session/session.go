@@ -8,6 +8,7 @@ const (
 )
 
 type Session struct {
-	UserID int64 `json:"userId"`
-	Event  Event `json:"sessionEvent"`
+	SessionID string `json:"sessionId"`
+	UserID    int64  `json:"userId"`
+	Event     Event  `json:"sessionEvent"`
 }

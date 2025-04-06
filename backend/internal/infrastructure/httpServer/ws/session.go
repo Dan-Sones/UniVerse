@@ -17,7 +17,7 @@ func (h *Hub) handleConnect(client *Client) {
 	(*h.Clients)[client.UserID] = client
 	h.mu.Unlock()
 
-	h.publishSessionEvent(client.UserID, session.DeviceConnected)
+	h.publishSessionEvent(client.UserID, client.SessionId, session.DeviceConnected)
 }
 
 func (h *Hub) handleDisconnect(client *Client) {
@@ -29,7 +29,7 @@ func (h *Hub) handleDisconnect(client *Client) {
 	}
 	h.mu.Unlock()
 
-	h.publishSessionEvent(client.UserID, session.DeviceDisconnected)
+	h.publishSessionEvent(client.UserID, client.SessionId, session.DeviceDisconnected)
 }
 
 func (h *Hub) handleIncomingFromClient(message *chat.InboundMessage) {
@@ -116,13 +116,14 @@ func (h *Hub) sendMessageToClient(message chat.Message) {
 	})
 }
 
-func (h *Hub) publishSessionEvent(userId int64, eventType session.Event) {
+func (h *Hub) publishSessionEvent(userId int64, sessionId string, eventType session.Event) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	sessionEvent := session.Session{
-		UserID: userId,
-		Event:  eventType,
+		UserID:    userId,
+		Event:     eventType,
+		SessionID: sessionId,
 	}
 
 	sessionJson, err := json.Marshal(sessionEvent)
@@ -130,6 +131,7 @@ func (h *Hub) publishSessionEvent(userId int64, eventType session.Event) {
 		h.logger.Error().Err(err).Msg(fmt.Sprintf("failed to marshal %s event", sessionEvent.Event))
 		return
 	}
+	fmt.Println(string(sessionJson))
 
 	err = h.sessionStateWriter.WriteMessages(ctx, kafka.Message{
 		Key:   []byte(fmt.Sprintf("%d", userId)),

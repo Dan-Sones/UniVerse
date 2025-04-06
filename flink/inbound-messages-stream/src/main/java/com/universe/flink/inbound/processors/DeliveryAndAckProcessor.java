@@ -33,7 +33,6 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
     @Override
     public void processElement1(Message inboundMessage, CoProcessFunction<Message, MessageAck, Message>.Context context, Collector<Message> collector) throws Exception {
         DeliveryStatus currentDeliveryStatus = deliveryState.value();
-
         if (currentDeliveryStatus == null) {
             currentDeliveryStatus = new DeliveryStatus();
         }
@@ -52,6 +51,7 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
 
 
         System.out.printf("[State] MessageID=%s => %s%n", inboundMessage.getMessageId(), currentDeliveryStatus);
+        // collecting with PREMPTIVE Status - will send to ws but NOT write to db
         collector.collect(inboundMessage);
     }
 
@@ -74,7 +74,7 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
             Message currentMessage = messageState.value();
             if (currentMessage != null) {
                 currentMessage.setStatus(MessageStatus.DELIVERED);
-                // Collect before clearing state
+                // collecting with DELIEVERED status = will send to db
                 collector.collect(currentMessage);
             }
 

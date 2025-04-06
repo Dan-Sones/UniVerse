@@ -17,3 +17,4 @@ create_topic() {
 create_topic inbound-messages
 create_topic outbound-messages
 create_topic message-ack
+create_topic session-state
