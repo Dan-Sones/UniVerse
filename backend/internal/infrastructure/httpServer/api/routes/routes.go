@@ -32,6 +32,7 @@ func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dyna
 
 	inboundKafkaConn := kafka.CreateInboundMessagesWriter()
 	messageAckConn := kafka.CreateMessageAckWriter()
+	sessionStateConn := kafka.CreateSessionStateWriter()
 
 	reader := kafka2.NewReader(kafka2.ReaderConfig{
 		Brokers:  []string{"localhost:9092"},
@@ -46,7 +47,7 @@ func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dyna
 
 	outboundMessages := make(chan chat.Message, 10000)
 
-	hub := ws.NewHub(inboundKafkaConn, messageAckConn, &clients, outboundMessages, r.Logger)
+	hub := ws.NewHub(inboundKafkaConn, messageAckConn, sessionStateConn, &clients, outboundMessages, r.Logger)
 	go hub.Run()
 
 	go outboundMessaageService.ListenForOutboundMessages(&clients, outboundMessages)

@@ -24,3 +24,13 @@ func CreateMessageAckWriter() *kafka.Writer {
 	}
 	return writer
 }
+
+func CreateSessionStateWriter() *kafka.Writer {
+	writer := &kafka.Writer{
+		Addr:         kafka.TCP("localhost:9092"),
+		Topic:        "session-state",
+		Balancer:     &kafka.LeastBytes{},
+		BatchTimeout: 10 * time.Millisecond,
+	}
+	return writer
+}
