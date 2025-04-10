@@ -25,7 +25,7 @@ resource "aws_security_group" "users_rds_sg" {
 
 data "aws_ip_ranges" "api_gateway" {
   services = ["api-gateway"]
-  regions  = ["us-east-1"]
+  regions  = ["eu-west-2"]
 }
 
 resource "aws_security_group_rule" "allow_api_gateway_to_alb_https" {

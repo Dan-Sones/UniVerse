@@ -20,7 +20,7 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
   container_definitions = jsonencode([
     {
       name      = "universe-messenger"
-      image     = "079810756638.dkr.ecr.us-east-1.amazonaws.com/universe-messenger:latest"
+      image     = "079810756638.dkr.ecr.eu-west-2.amazonaws.com/universe-messenger:latest"
       cpu       = 512
       memory    = 1024
       essential = true
@@ -28,7 +28,7 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
         logDriver = "awslogs"
         options = {
           awslogs-group         = "/aws/ecs/universe-messenger"
-          awslogs-region        = "us-east-1"
+          awslogs-region        = "eu-west-2"
           awslogs-stream-prefix = "ecs"
         }
       }
