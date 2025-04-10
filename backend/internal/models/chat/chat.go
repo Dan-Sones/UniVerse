@@ -1,42 +1,16 @@
 package chat
 
-import "encoding/json"
-
-type MessageStatus int
-
-const (
-	StateDelivered MessageStatus = iota
-	StateRead
-)
-
-var messageStateMap = map[MessageStatus]string{
-	StateRead:      "READ",
-	StateDelivered: "DELIVERED",
-}
-
-func (ms MessageStatus) String() string {
-	return messageStateMap[ms]
-}
-
-type MessageType int
+type MessageType string
+type MessageStatus string
 
 const (
-	TypeText MessageType = iota
-	TypeImage
+	TypeText         MessageType   = "TEXT"
+	StatusPreEmptive MessageStatus = "PREEMPTIVE"
+	StatusDelivered  MessageStatus = "DELIVERED"
+	StatusSent       MessageStatus = "SENT"
+	StatusRead       MessageStatus = "READ"
+	StatusFailed     MessageStatus = "FAILED"
 )
-
-var messageTypeMap = map[MessageType]string{
-	TypeText:  "TEXT",
-	TypeImage: "IMAGE",
-}
-
-func (mt MessageType) String() string {
-	return messageTypeMap[mt]
-}
-
-func (mt MessageType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(mt.String())
-}
 
 type Message struct {
 	ConversationId string        `json:"conversationId" dynamodbav:"conversationId"`
@@ -47,15 +21,6 @@ type Message struct {
 	Content        string        `json:"content" dynamodbav:"content"`
 	MessageType    MessageType   `json:"messageType" dynamodbav:"messageType"`
 	Status         MessageStatus `json:"status" dynamodbav:"status"`
-}
-
-type OutboundMessage struct {
-	MessageId string `json:"messageId"`
-	Type      string `json:"type"`
-	From      int64  `json:"from"`
-	To        int64  `json:"to"`
-	Content   string `json:"content"`
-	Time      string `json:"time"`
 }
 
 type InboundMessage struct {

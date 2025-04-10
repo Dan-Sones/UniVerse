@@ -4,10 +4,14 @@ import (
 	"backend/internal/controllers"
 	"backend/internal/infrastructure/httpServer/api/middleware"
 	"backend/internal/infrastructure/httpServer/ws"
+	"backend/internal/infrastructure/kafka"
+	"backend/internal/models/chat"
+	"backend/internal/services"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
+	kafka2 "github.com/segmentio/kafka-go"
 )
 
 type routes struct {
@@ -26,8 +30,27 @@ func NewRoutes(logger *zerolog.Logger) Routes {
 
 func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dynamoClient *dynamodb.Client) {
 
-	hub := ws.NewHub(dynamoClient, r.Logger)
+	inboundKafkaConn := kafka.CreateInboundMessagesWriter()
+	messageAckConn := kafka.CreateMessageAckWriter()
+	sessionStateConn := kafka.CreateSessionStateWriter()
+
+	reader := kafka2.NewReader(kafka2.ReaderConfig{
+		Brokers:  []string{"localhost:9092"},
+		Topic:    "outbound-messages",
+		MinBytes: 1,
+		MaxBytes: 57671680,
+	})
+
+	outboundMessaageService := services.NewKafkaService(reader, r.Logger)
+
+	clients := make(map[int64]*ws.Client)
+
+	outboundMessages := make(chan chat.Message, 10000)
+
+	hub := ws.NewHub(inboundKafkaConn, messageAckConn, sessionStateConn, &clients, outboundMessages, r.Logger)
 	go hub.Run()
+
+	go outboundMessaageService.ListenForOutboundMessages(&clients, outboundMessages)
 
 	public := router.Group("/api")
 	{

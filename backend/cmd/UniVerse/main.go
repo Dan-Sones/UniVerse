@@ -2,7 +2,7 @@ package main
 
 import (
 	"backend/internal/infrastructure/db"
-	routes2 "backend/internal/infrastructure/httpServer/api/routes"
+	"backend/internal/infrastructure/httpServer/api/routes"
 	"context"
 	_ "embed"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -27,7 +27,7 @@ func runInitScript(db *pgxpool.Pool) error {
 //	var envFile string
 //	switch env {
 //	case "dev":
-//		envFile = ".env.dev"
+//		envFile = ".env"
 //	default:
 //		envFile = ".env.prod"
 //	}
@@ -71,8 +71,10 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
-	router := routes2.NewRouter()
-	routing := routes2.NewRoutes(&logger)
+	//services.SetupChat(&logger)
+
+	router := routes.NewRouter()
+	routing := routes.NewRoutes(&logger)
 	routing.InitializeRoutes(router, pool, dynamoClient)
 
 	err = router.Run(":80")

@@ -8,10 +8,11 @@ import (
 )
 
 type Client struct {
-	Conn   *websocket.Conn
-	UserID int64
-	Send   chan []byte
-	Hub    *Hub
+	Conn      *websocket.Conn
+	SessionId string
+	UserID    int64
+	Send      chan []byte
+	Hub       *Hub
 }
 
 func (c *Client) ReadMessages() {
@@ -26,8 +27,6 @@ func (c *Client) ReadMessages() {
 			break
 		}
 
-		log.Println("YOOO we got a message")
-
 		var messageStruct chat.InboundMessage
 		err = json.Unmarshal(message, &messageStruct)
 		if err != nil {
@@ -37,7 +36,7 @@ func (c *Client) ReadMessages() {
 
 		log.Println(messageStruct)
 
-		c.Hub.Broadcast <- messageStruct
+		c.Hub.IncomingFromClientDevice <- messageStruct
 	}
 }
 

@@ -2,35 +2,35 @@ package ws
 
 import (
 	"backend/internal/models/chat"
-	"backend/internal/services"
-	"context"
-	"encoding/json"
-	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/rs/zerolog"
+	"github.com/segmentio/kafka-go"
 	"sync"
-	"time"
 )
 
 type Hub struct {
-	Clients    map[int64]*Client
-	Broadcast  chan chat.InboundMessage
-	Register   chan *Client
-	Unregister chan *Client
-	mu         sync.Mutex
-	service    *services.ChatService
-	logger     *zerolog.Logger
+	Clients                  *map[int64]*Client
+	IncomingFromClientDevice chan chat.InboundMessage
+	IncomingFromKafka        chan chat.Message
+	Register                 chan *Client
+	Unregister               chan *Client
+	mu                       sync.RWMutex
+	logger                   *zerolog.Logger
+	inboundMessagesWriter    *kafka.Writer
+	messageAckWriter         *kafka.Writer
+	sessionStateWriter       *kafka.Writer
 }
 
-func NewHub(db *dynamodb.Client, logger *zerolog.Logger) *Hub {
-	chatService := services.NewChatService(db, logger)
+func NewHub(inboundMessagesWriter *kafka.Writer, messageAckWriter *kafka.Writer, sessionStateWriter *kafka.Writer, clients *map[int64]*Client, incomingFromKafka chan chat.Message, logger *zerolog.Logger) *Hub {
 	return &Hub{
-		Clients:    make(map[int64]*Client),
-		Broadcast:  make(chan chat.InboundMessage),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		service:    chatService,
-		logger:     logger,
+		Clients:                  clients,
+		IncomingFromClientDevice: make(chan chat.InboundMessage),
+		IncomingFromKafka:        incomingFromKafka,
+		Register:                 make(chan *Client),
+		Unregister:               make(chan *Client),
+		logger:                   logger,
+		inboundMessagesWriter:    inboundMessagesWriter,
+		messageAckWriter:         messageAckWriter,
+		sessionStateWriter:       sessionStateWriter,
 	}
 }
 
@@ -38,48 +38,13 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
-			h.logger.Info().Msg(fmt.Sprintf("Registering client with userId %d", client.UserID))
-			h.mu.Lock()
-			h.Clients[client.UserID] = client
-			h.mu.Unlock()
+			h.handleConnect(client)
 		case client := <-h.Unregister:
-			h.mu.Lock()
-			if _, exists := h.Clients[client.UserID]; exists {
-				h.logger.Info().Msg(fmt.Sprintf("closing connection on client with userId %d", client.UserID))
-
-				delete(h.Clients, client.UserID)
-				close(client.Send)
-			}
-			h.mu.Unlock()
-		case message := <-h.Broadcast:
-
-			sentTime := time.Now()
-			outboundMessage := chat.OutboundMessage{
-				Type:    message.Type,
-				From:    message.From,
-				To:      message.To,
-				Content: message.Content,
-				Time:    sentTime.Format(time.RFC3339),
-			}
-
-			if client, exists := h.Clients[message.To]; exists {
-
-				outboundJson, err := json.Marshal(outboundMessage)
-				if err != nil {
-					h.logger.Error().Err(err).Msg("failed to marshal outbound message")
-					return
-				}
-
-				client.Send <- outboundJson
-			} else {
-				// TODO: Push to pub sub stack with ttl
-			}
-
-			err := h.service.StoreMessage(context.Background(), &outboundMessage, sentTime)
-			if err != nil {
-				return
-			}
-
+			h.handleDisconnect(client)
+		case message := <-h.IncomingFromClientDevice:
+			go h.handleIncomingFromClient(&message)
+		case message := <-h.IncomingFromKafka:
+			go h.sendMessageToClient(message)
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"backend/internal/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -30,10 +31,11 @@ func ServeWS(hub *Hub, c *gin.Context) {
 
 	// Create a client and store it in the 'hub'
 	client := &Client{
-		UserID: userID,
-		Conn:   conn,
-		Send:   make(chan []byte, 1024),
-		Hub:    hub,
+		UserID:    userID,
+		Conn:      conn,
+		Send:      make(chan []byte, 1024),
+		SessionId: utils.GenerateSessionID(),
+		Hub:       hub,
 	}
 
 	hub.Register <- client
