@@ -108,10 +108,6 @@ resource "aws_security_group_rule" "allow_ecs_to_dynamo" {
   to_port           = 443
   protocol          = "tcp"
   cidr_blocks       = [aws_subnet.ecs_private_subnet_1.cidr_block, aws_subnet.ecs_private_subnet_2.cidr_block]
-
-
-
-
 }
 
 resource "aws_security_group_rule" "allow_dev_ssh_to_bastion" {
@@ -132,3 +128,7 @@ resource "aws_security_group_rule" "allow_bastion_egress" {
   security_group_id = aws_security_group.bastion_sg.id
 }
 
+
+resource "aws_security_group" "msk" {
+
+}

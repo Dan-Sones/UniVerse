@@ -44,12 +44,12 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
         { name = "POSTGRES_DB", value = "${var.users_db_name}" },
         { name = "POSTGRES_HOST", value = "${aws_db_instance.users.endpoint}" },
         { name = "POSTGRES_PORT", value = "5432" },
-        { name = "URL", value = "http://${aws_elastic_beanstalk_environment.frontend_env.cname}" }
+        # { name = "URL", value = "http://${aws_elastic_beanstalk_environment.frontend_env.cname}" }
       ]
     }
   ])
 
-  depends_on = [aws_ecs_cluster.universe_cluster, aws_lb.universe_alb, aws_db_instance.users, aws_elastic_beanstalk_environment.frontend_env]
+  depends_on = [aws_ecs_cluster.universe_cluster, aws_lb.universe_alb, aws_db_instance.users]
 }
 
 resource "aws_ecs_service" "universe_service" {
