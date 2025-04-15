@@ -168,10 +168,3 @@ resource "aws_vpc_endpoint" "dynamodb" {
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.private_rt.id]
 }
-
-resource "aws_route" "dynamo_endpoint" {
-  route_table_id         = aws_route_table.private_rt.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_vpc_endpoint.dynamodb.id
-
-}
