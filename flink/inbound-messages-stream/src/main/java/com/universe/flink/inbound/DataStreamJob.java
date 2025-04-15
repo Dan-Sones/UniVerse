@@ -40,6 +40,8 @@ import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -71,8 +73,10 @@ public class DataStreamJob {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         ObjectMapper mapper = new ObjectMapper();
 
+        String kafkaBootstrap = "b-1.universemskcluster.vvcfyz.c4.kafka.eu-west-2.amazonaws.com:9092,b-2.universemskcluster.vvcfyz.c4.kafka.eu-west-2.amazonaws.com:9092,b-3.universemskcluster.vvcfyz.c4.kafka.eu-west-2.amazonaws.com:9092";
+
         KafkaSource<Session> sessionSource = KafkaSource.<Session>builder()
-                .setBootstrapServers("localhost:9092")
+                .setBootstrapServers(kafkaBootstrap)
                 .setTopics("session-state")
                 .setStartingOffsets(OffsetsInitializer.latest())
                 .setGroupId("flink-dev-test-" + UUID.randomUUID())
@@ -86,7 +90,7 @@ public class DataStreamJob {
         );
 
         KafkaSource<Message> messageSource = KafkaSource.<Message>builder()
-                .setBootstrapServers("localhost:9092")
+                .setBootstrapServers(kafkaBootstrap)
                 .setTopics("inbound-messages")
                 .setStartingOffsets(OffsetsInitializer.latest())
                 .setGroupId("flink-dev-test-" + UUID.randomUUID())
@@ -101,7 +105,7 @@ public class DataStreamJob {
 
 
         KafkaSource<MessageAck> ackSource = KafkaSource.<MessageAck>builder()
-                .setBootstrapServers("localhost:9092")
+                .setBootstrapServers(kafkaBootstrap)
                 .setTopics("message-ack")
                 .setStartingOffsets(OffsetsInitializer.latest())
                 .setGroupId("flink-dev-test-" + UUID.randomUUID())
@@ -115,7 +119,7 @@ public class DataStreamJob {
         );
 
         KafkaSink<String> outboundMessagesSink = KafkaSink.<String>builder()
-                .setBootstrapServers("localhost:9092")
+                .setBootstrapServers(kafkaBootstrap)
                 .setRecordSerializer(
                         KafkaRecordSerializationSchema.builder()
                                 .setTopic("outbound-messages")

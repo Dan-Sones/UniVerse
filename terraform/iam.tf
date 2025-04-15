@@ -193,3 +193,28 @@ resource "aws_iam_role_policy" "flink_vpc_access" {
     ]
   })
 }
+
+resource "aws_iam_policy" "flink_dynamo_policy" {
+  name = "flinkDynamoAccess"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:Query"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "flink_dynamo_attach" {
+  role       = aws_iam_role.flink_app_role.name
+  policy_arn = aws_iam_policy.flink_dynamo_policy.arn
+}

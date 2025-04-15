@@ -1,14 +1,13 @@
 package com.universe.flink.inbound.sinks;
 
-import com.amazonaws.handlers.AsyncHandler;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
-import com.amazonaws.services.dynamodbv2.model.*;
 import com.universe.flink.inbound.clients.DynamoDB;
 import com.universe.flink.inbound.models.Message;
-import com.universe.flink.inbound.models.MessageStatus;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 
 import java.util.Collections;
 import java.util.Map;
@@ -16,44 +15,37 @@ import java.util.concurrent.TimeoutException;
 
 public class AsyncDynamoDBSink extends RichAsyncFunction<Message, Void> {
 
-    private transient AmazonDynamoDBAsync dynamoDBClient;
+    private transient DynamoDbAsyncClient dynamoDBClient;
 
     @Override
     public void open(Configuration parameters) {
         this.dynamoDBClient = DynamoDB.getDynamoDBAsyncClient();
     }
 
-
     @Override
     public void asyncInvoke(Message message, ResultFuture<Void> resultFuture) throws Exception {
         Map<String, AttributeValue> messageItem = Map.of(
-                "messageId", new AttributeValue(message.getMessageId()),
-                "conversationId", new AttributeValue(message.getConversationId()),
-                "senderId", new AttributeValue().withN(String.valueOf(message.getSenderId())),
-                "receiverId", new AttributeValue().withN(String.valueOf(message.getReceiverId())),
-                "timestamp", new AttributeValue(message.getTimestamp()),
-                "content", new AttributeValue(message.getContent()),
-                "messageType", new AttributeValue(message.getMessageType().toString()),
-                "status", new AttributeValue(message.getStatus().toString())
+                "messageId", AttributeValue.builder().s(message.getMessageId()).build(),
+                "conversationId", AttributeValue.builder().s(message.getConversationId()).build(),
+                "senderId", AttributeValue.builder().n(String.valueOf(message.getSenderId())).build(),
+                "receiverId", AttributeValue.builder().n(String.valueOf(message.getReceiverId())).build(),
+                "timestamp", AttributeValue.builder().s(message.getTimestamp()).build(),
+                "content", AttributeValue.builder().s(message.getContent()).build(),
+                "messageType", AttributeValue.builder().s(message.getMessageType().toString()).build(),
+                "status", AttributeValue.builder().s(message.getStatus().toString()).build()
         );
 
-        PutItemRequest putItemRequest = new PutItemRequest()
-                .withTableName("messages")
-                .withItem(messageItem);
+        PutItemRequest putItemRequest = PutItemRequest.builder()
+                .tableName("messages")
+                .item(messageItem)
+                .build();
 
-        dynamoDBClient.putItemAsync(putItemRequest, new AsyncHandler<PutItemRequest, PutItemResult>() {
-            @Override
-            public void onError(Exception e) {
-                resultFuture.completeExceptionally(e);
-            }
-
-            @Override
-            public void onSuccess(PutItemRequest request, PutItemResult result) {
-                resultFuture.complete(Collections.singleton(null));
-            }
-        });
-
-
+        dynamoDBClient.putItem(putItemRequest)
+                .thenAccept(response -> resultFuture.complete(Collections.singleton(null)))
+                .exceptionally(ex -> {
+                    resultFuture.completeExceptionally(ex);
+                    return null;
+                });
     }
 
     @Override
