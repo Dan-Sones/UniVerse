@@ -20,7 +20,7 @@ variable "profile" {
 
 variable "arn" {
   description = "arn for default iam"
-  type = string
+  type        = string
 }
 
 variable "users_db_username" {
@@ -39,4 +39,7 @@ variable "users_db_name" {
   type        = string
 }
 
-
+variable "kakfa_brokers" {
+  description = "Kafka brokers"
+  type        = string
+}

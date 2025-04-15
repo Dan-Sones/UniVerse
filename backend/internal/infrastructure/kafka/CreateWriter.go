@@ -9,7 +9,7 @@ import (
 )
 
 func GetKafkaBrokers() []string {
-	brokersEnv := os.Getenv("KAFKA_ENDPOINTS")
+	brokersEnv := os.Getenv("KAFKA_BROKERS")
 	if brokersEnv == "" {
 		log.Fatal("Missing required kafka environment variables")
 	}

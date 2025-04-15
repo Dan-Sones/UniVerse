@@ -12,6 +12,27 @@ resource "aws_iam_role" "ecs_task_execution_role" {
     }]
   })
 }
+// Not sure why but I seem to need to attach this manually to allow ecs to pull from ecr?
+resource "aws_iam_role_policy" "ecs_exec_ecr_access" {
+  name = "ecsTaskExecutionECRAccess"
+  role = aws_iam_role.ecs_task_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetAuthorizationToken"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
 
 resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
@@ -50,7 +71,6 @@ resource "aws_iam_policy" "ecs_task_custom_policy" {
         ],
         Resource = "*"
       },
-      # RDS access (non-IAM auth use case — mostly just describe access if needed)
       {
         Effect = "Allow",
         Action = [

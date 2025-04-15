@@ -19,8 +19,8 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
 
   container_definitions = jsonencode([
     {
-      name      = "universe-messenger"
-      image     = "079810756638.dkr.ecr.eu-west-2.amazonaws.com/universe-messenger:latest"
+      name  = "universe-messenger"
+      image = "183295447766.dkr.ecr.eu-west-2.amazonaws.com/universe-messenger:latest"
       cpu       = 512
       memory    = 1024
       essential = true
@@ -44,8 +44,8 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
         { name = "POSTGRES_DB", value = "${var.users_db_name}" },
         { name = "POSTGRES_HOST", value = "${aws_db_instance.users.endpoint}" },
         { name = "POSTGRES_PORT", value = "5432" },
-        # { name = "URL", value = "http://${aws_elastic_beanstalk_environment.frontend_env.cname}" }
-        { name = "KAFKA_BROKERS", value = "${aws_msk_cluster.main.bootstrap_brokers}" }
+        { name = "URL", value = "*" },
+        { name = "KAFKA_BROKERS", value = "${var.kakfa_brokers}" }
       ]
     }
   ])
