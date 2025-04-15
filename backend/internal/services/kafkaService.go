@@ -37,7 +37,10 @@ func (ks *OutboundMessagesService) ListenForOutboundMessages(clients *map[int64]
 		ks.Logger.Info().Str("message_id", message.MessageId).Msg("Received message from Kafka")
 
 		if _, ok := (*clients)[message.ReceiverId]; ok {
+			ks.Logger.Info().Msg("Client found, sending message to client")
 			messages <- message
+		} else {
+			ks.Logger.Info().Msg("Client not found, skipping message")
 		}
 	}
 

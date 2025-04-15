@@ -1,6 +1,8 @@
 package kafka
 
 import (
+	"fmt"
+	uuid "github.com/satori/go.uuid"
 	"github.com/segmentio/kafka-go"
 	"log"
 	"os"
@@ -51,6 +53,7 @@ func CreateOutboundMessagesReader() *kafka.Reader {
 	return kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  GetKafkaBrokers(),
 		Topic:    "outbound-messages",
+		GroupID:  fmt.Sprintf("chat-service-%s", uuid.NewV1().String()),
 		MinBytes: 1,
 		MaxBytes: 57671680,
 	})
