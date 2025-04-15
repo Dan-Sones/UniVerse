@@ -85,6 +85,21 @@ resource "aws_subnet" "msk_private_subnet_3" {
   availability_zone = "eu-west-2c"
 }
 
+resource "aws_route_table_association" "msk_subnet_1_assoc" {
+  subnet_id      = aws_subnet.msk_private_subnet_1.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+resource "aws_route_table_association" "msk_subnet_2_assoc" {
+  subnet_id      = aws_subnet.msk_private_subnet_2.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+resource "aws_route_table_association" "msk_subnet_3_assoc" {
+  subnet_id      = aws_subnet.msk_private_subnet_3.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.chat_vpc.id
 }

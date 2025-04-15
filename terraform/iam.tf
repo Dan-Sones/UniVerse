@@ -87,3 +87,109 @@ resource "aws_iam_role_policy_attachment" "ecs_task_policy_attach" {
   role       = aws_iam_role.ecs_task_role.name
   policy_arn = aws_iam_policy.ecs_task_custom_policy.arn
 }
+
+
+resource "aws_iam_role" "flink_app_role" {
+  name = "flink-app-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "kinesisanalytics.amazonaws.com"
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "flink_policy" {
+  name = "KinesisFlinkApplicationPolicy"
+  role = aws_iam_role.flink_app_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "AllowReadAccessToApplicationJar"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "arn:aws:s3:::universe-messenger-flink-jar",
+          "arn:aws:s3:::universe-messenger-flink-jar/inbound-messages-stream-1.0-SNAPSHOT.jar"
+        ]
+      },
+      {
+        Sid    = "AllowCloudWatchLogging"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams",
+          "logs:DescribeLogGroups"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "AllowKinesisAnalyticsManagement"
+        Effect = "Allow"
+        Action = [
+          "kinesisanalytics:DescribeApplication",
+          "kinesisanalytics:StartApplication",
+          "kinesisanalytics:StopApplication",
+          "kinesisanalytics:UpdateApplication"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "AllowMSKClusterAccess"
+        Effect = "Allow"
+        Action = [
+          "kafka:GetBootstrapBrokers",
+          "kafka:DescribeCluster",
+          "kafka:ListClusters"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "flink_vpc_access" {
+  name = "FlinkVpcAccess"
+  role = aws_iam_role.flink_app_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "VPCReadOnlyPermissions",
+        Effect = "Allow",
+        Action = [
+          "ec2:DescribeVpcs",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeDhcpOptions"
+        ],
+        Resource = "*"
+      },
+      {
+        Sid    = "ENIReadWritePermissions",
+        Effect = "Allow",
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:CreateNetworkInterfacePermission",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}

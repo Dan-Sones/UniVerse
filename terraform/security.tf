@@ -56,7 +56,6 @@ resource "aws_security_group" "ecs_sg" {
   }
 }
 
-
 resource "aws_security_group_rule" "allow_ecs_to_rds" {
   type                     = "egress"
   security_group_id        = aws_security_group.ecs_sg.id
@@ -65,7 +64,6 @@ resource "aws_security_group_rule" "allow_ecs_to_rds" {
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.users_rds_sg.id
 }
-
 
 resource "aws_security_group" "alb_sg" {
   name   = "alb-security-group"
@@ -92,8 +90,6 @@ resource "aws_security_group" "alb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
-
 
 resource "aws_security_group" "dynamo_sg" {
   name   = "dynamo-security-group"
@@ -128,26 +124,24 @@ resource "aws_security_group_rule" "allow_bastion_egress" {
   security_group_id = aws_security_group.bastion_sg.id
 }
 
-
 resource "aws_security_group" "msk" {
+  name   = "msk-security-group"
   vpc_id = aws_vpc.chat_vpc.id
 
   ingress {
     from_port       = 9092
     to_port         = 9092
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id, aws_security_group.ec2_kafka_admin.id]
+    security_groups = [aws_security_group.flink.id, aws_security_group.ec2_kafka_admin.id, aws_security_group.ecs_sg.id]
   }
 
   egress {
-    from_port       = 9092
-    to_port         = 9092
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
-
 }
-
 
 resource "aws_security_group" "ec2_kafka_admin" {
   name   = "ec2-kafka-admin"
@@ -165,5 +159,17 @@ resource "aws_security_group" "ec2_kafka_admin" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["${var.my_ip}/32"]
+  }
+}
+
+resource "aws_security_group" "flink" {
+  name   = "flink-security-group"
+  vpc_id = aws_vpc.chat_vpc.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }

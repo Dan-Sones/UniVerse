@@ -39,7 +39,7 @@ variable "users_db_name" {
   type        = string
 }
 
-variable "kakfa_brokers" {
+variable "kafka_brokers" {
   description = "Kafka brokers"
   type        = string
 }

@@ -39,6 +39,10 @@ resource "aws_s3_bucket_policy" "frontend_bucket_policy" {
   })
 }
 
+resource "aws_s3_bucket" "universe_messenger_flink_jar_bucket" {
+  bucket = "universe-messenger-flink-jar"
+}
+
 
 # resource "aws_s3_bucket" "universe_messneger_static_bucket" {
 #   bucket = "universe-messneger-static-zip"

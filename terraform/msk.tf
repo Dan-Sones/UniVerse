@@ -20,6 +20,4 @@ resource "aws_msk_cluster" "main" {
       in_cluster    = true
     }
   }
-
-
 }
