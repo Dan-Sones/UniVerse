@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
-	kafka2 "github.com/segmentio/kafka-go"
 )
 
 type routes struct {
@@ -34,14 +33,9 @@ func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dyna
 	messageAckConn := kafka.CreateMessageAckWriter()
 	sessionStateConn := kafka.CreateSessionStateWriter()
 
-	reader := kafka2.NewReader(kafka2.ReaderConfig{
-		Brokers:  []string{"localhost:9092"},
-		Topic:    "outbound-messages",
-		MinBytes: 1,
-		MaxBytes: 57671680,
-	})
+	reader := kafka.CreateOutboundMessagesReader()
 
-	outboundMessaageService := services.NewKafkaService(reader, r.Logger)
+	outboundMessageService := services.NewKafkaService(reader, r.Logger)
 
 	clients := make(map[int64]*ws.Client)
 
@@ -50,7 +44,7 @@ func (r *routes) InitializeRoutes(router *gin.Engine, pgPool *pgxpool.Pool, dyna
 	hub := ws.NewHub(inboundKafkaConn, messageAckConn, sessionStateConn, &clients, outboundMessages, r.Logger)
 	go hub.Run()
 
-	go outboundMessaageService.ListenForOutboundMessages(&clients, outboundMessages)
+	go outboundMessageService.ListenForOutboundMessages(&clients, outboundMessages)
 
 	public := router.Group("/api")
 	{

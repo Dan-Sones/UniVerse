@@ -45,6 +45,7 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
         { name = "POSTGRES_HOST", value = "${aws_db_instance.users.endpoint}" },
         { name = "POSTGRES_PORT", value = "5432" },
         # { name = "URL", value = "http://${aws_elastic_beanstalk_environment.frontend_env.cname}" }
+        { name = "KAFKA_BROKERS", value = "${aws_msk_cluster.main.bootstrap_brokers}" }
       ]
     }
   ])
