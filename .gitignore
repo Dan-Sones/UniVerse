@@ -8,6 +8,8 @@ frontend/.env.production
 terraform/go-backend-key.pem
 terraform/jump-server-key.pem
 terraform/.terraform.lock.hcl
+terraform/*.pem
+terraform/*.key
 flink/inbound-messages-stream/.idea/
 flink/inbound-messages-stream/target/
 
