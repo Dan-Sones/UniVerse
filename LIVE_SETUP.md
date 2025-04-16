@@ -1,4 +1,4 @@
-## Local Environment Setup
+## Live Environment Setup
 
 Note: These instructions MUST be followed in order to run the project successfully.
 
