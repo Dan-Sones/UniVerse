@@ -43,3 +43,13 @@ variable "kafka_brokers" {
   description = "Kafka brokers"
   type        = string
 }
+
+variable "frontendUrl" {
+  description = "Frontend URL e.g. https://d197bbyopxu24o.cloudfront.net (do NOT include trailing /)"
+  type        = string
+}
+
+variable "certificate_arn" {
+  description = "Certificate ARN for the ALB"
+  type        = string
+}

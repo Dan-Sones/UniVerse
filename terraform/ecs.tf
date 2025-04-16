@@ -44,7 +44,7 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
         { name = "POSTGRES_DB", value = "${var.users_db_name}" },
         { name = "POSTGRES_HOST", value = "${aws_db_instance.users.endpoint}" },
         { name = "POSTGRES_PORT", value = "5432" },
-        { name = "URL", value = "*" },
+        { name = "URL", value = "${var.frontendUrl}" }, // TODO: There might be a way to get this from cloudfront directly?
         { name = "KAFKA_BROKERS", value = "${var.kafka_brokers}" }
       ]
     }

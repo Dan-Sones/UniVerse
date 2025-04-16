@@ -61,7 +61,6 @@ resource "aws_iam_policy" "ecs_task_custom_policy" {
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
-      # DynamoDB access
       {
         Effect = "Allow",
         Action = [
