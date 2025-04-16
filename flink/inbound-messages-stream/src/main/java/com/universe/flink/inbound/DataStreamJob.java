@@ -61,15 +61,6 @@ import java.util.concurrent.TimeUnit;
 public class DataStreamJob {
 
     public static void main(String[] args) throws Exception {
-
-
-//        ListTablesResult listTablesResult = dynamoDB.listTables();
-//        System.out.println("DynamoDB Tables:");
-//        listTablesResult.getTableNames().forEach(System.out::println);
-
-
-        // Sets up the execution environment, which is the main entry point
-        // to building Flink applications.
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         ObjectMapper mapper = new ObjectMapper();
 
@@ -126,7 +117,6 @@ public class DataStreamJob {
                                 .setValueSerializationSchema(new SimpleStringSchema())
                                 .build()
                 )
-                // EXACTLY_ONCE crashes it?
                 .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
                 .build();
 

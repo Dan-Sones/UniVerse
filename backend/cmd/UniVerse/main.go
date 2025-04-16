@@ -21,22 +21,6 @@ func runInitScript(db *pgxpool.Pool) error {
 	return err
 }
 
-//func loadEnv() {
-//	env := os.Getenv("GO_ENV")
-//
-//	var envFile string
-//	switch env {
-//	case "dev":
-//		envFile = ".env"
-//	default:
-//		envFile = ".env.prod"
-//	}
-//
-//	if err := godotenv.Load(envFile); err != nil {
-//		log.Fatalf("Error loading %s file: %v", envFile, err)
-//	}
-//}
-
 func main() {
 
 	logger := zerolog.New(os.Stdout)
@@ -70,8 +54,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-
-	//services.SetupChat(&logger)
 
 	router := routes.NewRouter()
 	routing := routes.NewRoutes(&logger)
