@@ -1,10 +1,6 @@
 resource "aws_s3_bucket" "frontend_bucket" {
-  bucket = "universe-messenger-frontend"
+  bucket = "universe-messenger-frontend-bucket"
 
-  tags = {
-    Name        = "Universe Messenger Frontend"
-    Environment = "Production"
-  }
 }
 
 resource "aws_s3_bucket_website_configuration" "frontend_website" {
@@ -43,14 +39,7 @@ resource "aws_s3_bucket_policy" "frontend_bucket_policy" {
   })
 }
 
-
-resource "aws_s3_bucket" "universe_messneger_static_bucket" {
-  bucket = "universe-messneger-static-zip"
+resource "aws_s3_bucket" "universe_messenger_flink_jar_bucket" {
+  bucket = "universe-messenger-flink-jar"
 }
 
-resource "aws_s3_object" "react_app_zip" {
-  bucket = aws_s3_bucket.universe_messneger_static_bucket.bucket
-  key    = "frontendDeployment.zip"
-  source = "frontendDeployment.zip"
-  etag   = filemd5("frontendDeployment.zip")
-}

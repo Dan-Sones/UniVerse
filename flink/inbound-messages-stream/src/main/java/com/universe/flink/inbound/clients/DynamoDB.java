@@ -1,30 +1,34 @@
 package com.universe.flink.inbound.clients;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClientBuilder;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 
-import java.io.Serializable;
+
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClientBuilder;
+
+import java.net.URI;
 
 public class DynamoDB {
 
-    public static AmazonDynamoDBAsync getDynamoDBAsyncClient() {
-        return AmazonDynamoDBAsyncClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-east-1"))
-                .withCredentials(new AWSStaticCredentialsProvider(new SerializableAWSCredentials("local", "local")))
-                .build();
-    }
+    public static DynamoDbAsyncClient getDynamoDBAsyncClient() {
+        String env = System.getenv("ENVIRONMENT");
 
-    // Serializable wrapper for BasicAWSCredentials
-    public static class SerializableAWSCredentials extends BasicAWSCredentials implements Serializable {
-        private static final long serialVersionUID = 1L;
-
-        public SerializableAWSCredentials(String accessKey, String secretKey) {
-            super(accessKey, secretKey);
+        DynamoDbAsyncClientBuilder builder = DynamoDbAsyncClient.builder();
+        if ("dev".equals(env)) {
+            builder
+                    .endpointOverride(URI.create("http://localhost:8000"))
+                    .region(Region.US_EAST_1)
+                    .credentialsProvider(StaticCredentialsProvider.create(
+                            AwsBasicCredentials.create("local", "local")));
+        } else {
+            builder
+                    .region(Region.EU_WEST_2)
+                    .credentialsProvider(DefaultCredentialsProvider.create());
         }
+
+        return builder.build();
     }
 }

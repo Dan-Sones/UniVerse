@@ -6,65 +6,98 @@ resource "aws_subnet" "public_subnet_1" {
   vpc_id                  = aws_vpc.chat_vpc.id
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
-  availability_zone       = "us-east-1a"
+  availability_zone       = "eu-west-2a"
 }
 
 resource "aws_subnet" "public_subnet_2" {
   vpc_id                  = aws_vpc.chat_vpc.id
   cidr_block              = "10.0.2.0/24"
   map_public_ip_on_launch = true
-  availability_zone       = "us-east-1b"
+  availability_zone       = "eu-west-2b"
 }
 
 resource "aws_subnet" "ec2_private_subnet_1" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.3.0/24"
-  availability_zone = "us-east-1a"
+  availability_zone = "eu-west-2a"
 }
 
 resource "aws_subnet" "ec2_private_subnet_2" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.4.0/24"
-  availability_zone = "us-east-1b"
+  availability_zone = "eu-west-2b"
 }
 
 # Private Subnet for RDS
 resource "aws_subnet" "rds_private_subnet_1" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.5.0/24"
-  availability_zone = "us-east-1a"
+  availability_zone = "eu-west-2a"
 }
 
 resource "aws_subnet" "rds_private_subnet_2" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.6.0/24"
-  availability_zone = "us-east-1b"
+  availability_zone = "eu-west-2b"
 }
 
 resource "aws_subnet" "ecs_private_subnet_1" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.7.0/24"
-  availability_zone = "us-east-1a"
+  availability_zone = "eu-west-2a"
 }
 
 resource "aws_subnet" "ecs_private_subnet_2" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.8.0/24"
-  availability_zone = "us-east-1b"
+  availability_zone = "eu-west-2b"
 }
 
 resource "aws_subnet" "alb_public_subnet_1" {
   vpc_id                  = aws_vpc.chat_vpc.id
   map_public_ip_on_launch = true
   cidr_block              = "10.0.9.0/24"
-  availability_zone       = "us-east-1a"
+  availability_zone       = "eu-west-2a"
 }
 
 resource "aws_subnet" "alb_public_subnet_2" {
   vpc_id                  = aws_vpc.chat_vpc.id
   map_public_ip_on_launch = true
   cidr_block              = "10.0.10.0/24"
-  availability_zone       = "us-east-1b"
+  availability_zone       = "eu-west-2b"
+}
+
+resource "aws_subnet" "msk_private_subnet_1" {
+  vpc_id            = aws_vpc.chat_vpc.id
+  cidr_block        = "10.0.11.0/24"
+  availability_zone = "eu-west-2a"
+}
+
+resource "aws_subnet" "msk_private_subnet_2" {
+  vpc_id            = aws_vpc.chat_vpc.id
+  cidr_block        = "10.0.12.0/24"
+  availability_zone = "eu-west-2b"
+}
+
+resource "aws_subnet" "msk_private_subnet_3" {
+  vpc_id            = aws_vpc.chat_vpc.id
+  cidr_block        = "10.0.13.0/24"
+  availability_zone = "eu-west-2c"
+}
+
+resource "aws_route_table_association" "msk_subnet_1_assoc" {
+  subnet_id      = aws_subnet.msk_private_subnet_1.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+resource "aws_route_table_association" "msk_subnet_2_assoc" {
+  subnet_id      = aws_subnet.msk_private_subnet_2.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+resource "aws_route_table_association" "msk_subnet_3_assoc" {
+  subnet_id      = aws_subnet.msk_private_subnet_3.id
+  route_table_id = aws_route_table.private_rt.id
 }
 
 resource "aws_internet_gateway" "gw" {
@@ -146,14 +179,7 @@ resource "aws_route_table_association" "private_subnet_2_association" {
 
 resource "aws_vpc_endpoint" "dynamodb" {
   vpc_id            = aws_vpc.chat_vpc.id
-  service_name      = "com.amazonaws.us-east-1.dynamodb"
+  service_name      = "com.amazonaws.eu-west-2.dynamodb"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.private_rt.id]
-}
-
-resource "aws_route" "dynamo_endpoint" {
-  route_table_id         = aws_route_table.private_rt.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_vpc_endpoint.dynamodb.id
-
 }

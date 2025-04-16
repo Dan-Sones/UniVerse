@@ -32,5 +32,5 @@ resource "local_file" "jump_server_private_key" {
 resource "local_file" "go_backend_private_key" {
   content         = tls_private_key.go_backend_key.private_key_pem
   filename        = "${path.module}/go-backend-key.pem"
-  file_permission = "0600" 
+  file_permission = "0600"
 }

@@ -20,7 +20,7 @@ variable "profile" {
 
 variable "arn" {
   description = "arn for default iam"
-  type = string
+  type        = string
 }
 
 variable "users_db_username" {
@@ -39,4 +39,17 @@ variable "users_db_name" {
   type        = string
 }
 
+variable "kafka_brokers" {
+  description = "Kafka brokers"
+  type        = string
+}
 
+variable "frontendUrl" {
+  description = "Frontend URL e.g. https://d197bbyopxu24o.cloudfront.net (do NOT include trailing /)"
+  type        = string
+}
+
+variable "certificate_arn" {
+  description = "Certificate ARN for the ALB"
+  type        = string
+}

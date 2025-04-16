@@ -14,13 +14,13 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
   network_mode             = "awsvpc"
   cpu                      = "512"
   memory                   = "1024"
-  execution_role_arn       = var.arn
-  task_role_arn            = var.arn
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode([
     {
       name      = "universe-messenger"
-      image     = "079810756638.dkr.ecr.us-east-1.amazonaws.com/universe-messenger:latest"
+      image     = "183295447766.dkr.ecr.eu-west-2.amazonaws.com/universe-messenger:latest"
       cpu       = 512
       memory    = 1024
       essential = true
@@ -28,7 +28,7 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
         logDriver = "awslogs"
         options = {
           awslogs-group         = "/aws/ecs/universe-messenger"
-          awslogs-region        = "us-east-1"
+          awslogs-region        = "eu-west-2"
           awslogs-stream-prefix = "ecs"
         }
       }
@@ -44,12 +44,13 @@ resource "aws_ecs_task_definition" "universe_backend_task" {
         { name = "POSTGRES_DB", value = "${var.users_db_name}" },
         { name = "POSTGRES_HOST", value = "${aws_db_instance.users.endpoint}" },
         { name = "POSTGRES_PORT", value = "5432" },
-        { name = "URL", value = "http://${aws_elastic_beanstalk_environment.frontend_env.cname}" }
+        { name = "URL", value = "${var.frontendUrl}" }, // TODO: There might be a way to get this from cloudfront directly?
+        { name = "KAFKA_BROKERS", value = "${var.kafka_brokers}" }
       ]
     }
   ])
 
-  depends_on = [aws_ecs_cluster.universe_cluster, aws_lb.universe_alb, aws_db_instance.users, aws_elastic_beanstalk_environment.frontend_env]
+  depends_on = [aws_ecs_cluster.universe_cluster, aws_lb.universe_alb, aws_db_instance.users]
 }
 
 resource "aws_ecs_service" "universe_service" {
