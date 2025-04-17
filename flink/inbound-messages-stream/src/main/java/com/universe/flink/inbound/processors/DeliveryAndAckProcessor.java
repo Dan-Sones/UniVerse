@@ -61,7 +61,7 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
 
         // Start the on timer with a wait so in the event we don't get an acknowledgement through in process 2
         // ... we can assume something went very wrong and we should trigger the retry logic manually
-        context.timerService().registerProcessingTimeTimer(context.timerService().currentProcessingTime() + INITIAL_BACKOFF_DELAY + 10000L);
+        context.timerService().registerProcessingTimeTimer(context.timerService().currentProcessingTime() + INITIAL_BACKOFF_DELAY);
 
     }
 
