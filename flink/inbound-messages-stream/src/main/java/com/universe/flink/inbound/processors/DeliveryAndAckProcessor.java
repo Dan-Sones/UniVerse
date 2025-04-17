@@ -61,12 +61,13 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
 
         // Start the on timer with a wait so in the event we don't get an acknowledgement through in process 2
         // ... we can assume something went very wrong and we should trigger the retry logic manually
-        context.timerService().registerProcessingTimeTimer(INITIAL_BACKOFF_DELAY);
+        context.timerService().registerProcessingTimeTimer(context.timerService().currentProcessingTime() + INITIAL_BACKOFF_DELAY + 10000L);
 
     }
 
     @Override
     public void processElement2(MessageAck messageAck, CoProcessFunction<Message, MessageAck, Message>.Context context, Collector<Message> collector) throws Exception {
+        System.out.println("[State] ACK RECIEVED MessageID=" + messageAck.getMessageId());
         DeliveryStatus status = deliveryState.value();
 
         if (status == null) {
