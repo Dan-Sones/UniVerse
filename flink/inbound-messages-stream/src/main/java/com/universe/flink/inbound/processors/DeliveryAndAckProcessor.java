@@ -17,6 +17,10 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
     private transient ValueState<Message> messageState;
     private transient ValueState<Long> backOffTimeState;
 
+    private static final long INITIAL_BACKOFF_DELAY = 1000L;
+    private static final long MAX_BACKOFF_DELAY = 60000L;
+    private static final int MAX_DELIVERY_ATTEMPTS = 10;
+
     @Override
     public void open(Configuration parameters) {
         ValueStateDescriptor<DeliveryStatus> descriptor = new ValueStateDescriptor<>("deliveryStatus", DeliveryStatus.class);
@@ -53,22 +57,28 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
         System.out.printf("[State] MessageID=%s => %s%n", inboundMessage.getMessageId(), currentDeliveryStatus);
         // collecting with PREMPTIVE Status - will send to ws but NOT write to db
         collector.collect(inboundMessage);
+
+
+        // Start the on timer with a wait so in the event we don't get an acknowledgement through in process 2
+        // ... we can assume something went very wrong and we should trigger the retry logic manually
+        context.timerService().registerProcessingTimeTimer(context.timerService().currentProcessingTime() + INITIAL_BACKOFF_DELAY);
+
     }
 
     @Override
     public void processElement2(MessageAck messageAck, CoProcessFunction<Message, MessageAck, Message>.Context context, Collector<Message> collector) throws Exception {
+        System.out.println("[State] ACK RECIEVED MessageID=" + messageAck.getMessageId());
         DeliveryStatus status = deliveryState.value();
-        Long backOffDelay = backOffTimeState.value();
 
         if (status == null) {
             status = new DeliveryStatus();
         }
 
-        if (backOffDelay == null) {
-            backOffDelay = 1000L;
-        }
+        // Update the state to confirm we received an ack - This will then be used in the onTimer
+        status.acknowledged = true;
+        deliveryState.update(status);
 
-        if (messageAck.isDelivered()) {
+        if (messageAck.isDelivered()) { // It was delievered!! - Do a bunch of clean up to get us out of here
             System.out.println("[State] MessageID=" + messageAck.getMessageId() + " delivered!");
 
             Message currentMessage = messageState.value();
@@ -80,15 +90,12 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
 
             // Clear all state after collection
             status.delivered = true;
-            deliveryState.update(status);  // Update status before clearing
+            deliveryState.update(status);  // Update status before clearing - IDK if this is needed but though it might be good practice
 
-            // Clear all states at once
-            deliveryState.clear();
-            backOffTimeState.clear();
-            messageState.clear();
+            clearAllStates();
         } else {
             System.out.println("[State] MessageID=" + messageAck.getMessageId() + " ERROR: " + messageAck.getError());
-            backOffDelay = Math.min(backOffDelay * 2, 60000L);
+            long backOffDelay = calculateBackOffDelay();
             backOffTimeState.update(backOffDelay);
             deliveryState.update(status);  // Update status before registering timer
             context.timerService().registerProcessingTimeTimer(context.timerService().currentProcessingTime() + backOffDelay);
@@ -98,28 +105,58 @@ public class DeliveryAndAckProcessor extends CoProcessFunction<Message, MessageA
     @Override
     public void onTimer(long timestamp, CoProcessFunction<Message, MessageAck, Message>.OnTimerContext ctx, Collector<Message> out) throws Exception {
         DeliveryStatus status = deliveryState.value();
-        Message CurrentMessage = messageState.value();
-        if (status != null && !status.delivered) {
+        Message currentMessage = messageState.value();
+        if (status != null && currentMessage != null) {
 
-            if (status.deliveryAttempts > 10) {
-                // If we tried to deliver 10 times and failed, stop trying
-                // it will be stored in the db anyway
-                System.out.println("[State] MessageID=" + CurrentMessage.getMessageId() + " ERROR: Max delivery attempts reached.");
-                CurrentMessage.setStatus(MessageStatus.FAILED);
-
-                messageState.update(CurrentMessage);
-
-                out.collect(messageState.value());
-
-                deliveryState.clear();
-                messageState.clear();
+            // something went wrong, we didn't recieve an acknowledgement to say it failed, we just got nothing
+            // This will then make it follow the standard delivery retry logic
+            if (!status.acknowledged && !status.failedToBeAcknowledgedWithinAcceptableTime) {
+                System.out.println("[State] MessageID=" + currentMessage.getMessageId() + "did not receive a message ack, kicking off retry logic manually");
+                status.failedToBeAcknowledgedWithinAcceptableTime = true;
+                deliveryState.update(status);
+                retryDelivery(ctx, out, status, currentMessage);
                 return;
             }
 
-            System.out.printf("[State] Resending MessageID=%s => %s%n", CurrentMessage.getMessageId(), status);
-            status.deliveryAttempts += 1;
-            status.lastDeliveryAttemptTime = Instant.now();
-            out.collect(CurrentMessage);
+
+            if (status.deliveryAttempts > MAX_DELIVERY_ATTEMPTS) {
+                // If we tried to deliver 10 times and failed, stop trying
+                // it will be stored in the db anyway
+                System.out.println("[State] MessageID=" + currentMessage.getMessageId() + "Max delivery attempts reached: aborting retries and writing to db");
+                currentMessage.setStatus(MessageStatus.FAILED);
+                out.collect(messageState.value());
+                clearAllStates();
+            } else { // we can retry again
+                retryDelivery(ctx, out, status, currentMessage);
+            }
+
+
         }
     }
+
+
+    private void retryDelivery(OnTimerContext ctx, Collector<Message> out, DeliveryStatus status, Message currentMessage) throws Exception {
+        status.deliveryAttempts++;
+        status.lastDeliveryAttemptTime = Instant.now();
+        deliveryState.update(status);
+
+        long backOffDelay = calculateBackOffDelay();
+        backOffTimeState.update(backOffDelay);
+
+        ctx.timerService().registerProcessingTimeTimer(ctx.timerService().currentProcessingTime() + backOffDelay);
+        System.out.printf("[State] Retrying MessageID=%s with backoff=%dms%n", currentMessage.getMessageId(), backOffDelay);
+        out.collect(currentMessage);
+    }
+
+    private long calculateBackOffDelay() throws Exception {
+        long backOffDelay = backOffTimeState.value() != null ? backOffTimeState.value() : INITIAL_BACKOFF_DELAY;
+        return Math.min(backOffDelay * 2, MAX_BACKOFF_DELAY);
+    }
+
+    private void clearAllStates() throws Exception {
+        deliveryState.clear();
+        messageState.clear();
+        backOffTimeState.clear();
+    }
+
 }

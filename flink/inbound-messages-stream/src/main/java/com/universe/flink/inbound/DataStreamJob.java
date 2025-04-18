@@ -64,7 +64,7 @@ public class DataStreamJob {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         ObjectMapper mapper = new ObjectMapper();
 
-        String kafkaBootstrap = "b-1.universemskcluster.vvcfyz.c4.kafka.eu-west-2.amazonaws.com:9092,b-2.universemskcluster.vvcfyz.c4.kafka.eu-west-2.amazonaws.com:9092,b-3.universemskcluster.vvcfyz.c4.kafka.eu-west-2.amazonaws.com:9092";
+        String kafkaBootstrap = "localhost:9092";
 
         KafkaSource<Session> sessionSource = KafkaSource.<Session>builder()
                 .setBootstrapServers(kafkaBootstrap)

@@ -7,6 +7,7 @@ public class DeliveryStatus {
     public Instant lastDeliveryAttemptTime;
     public boolean delivered = false;
     public boolean acknowledged = false;
+    public boolean failedToBeAcknowledgedWithinAcceptableTime = false;
 
     public DeliveryStatus() {}
 

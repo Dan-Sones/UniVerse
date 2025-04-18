@@ -12,4 +12,5 @@ terraform/*.pem
 terraform/*.key
 flink/inbound-messages-stream/.idea/
 flink/inbound-messages-stream/target/
+backend/docker/dynamodb/shared-local-instance.db
 
