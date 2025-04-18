@@ -48,4 +48,7 @@ func main() {
 	users := services.CreateUsers(randomUsers)
 	services.LoginAndRetrieveToken(users)
 
+	conversations := services.AllocateConversations(users)
+	services.PerformTests(conversations)
+
 }

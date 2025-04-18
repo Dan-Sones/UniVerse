@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-const BASE_URL = "http://localhost:80"
+const BASE_URL = "localhost:80"
 const MAX_CONCURRENT_REQUESTS = 100
 
 //
@@ -16,9 +16,9 @@ const MAX_CONCURRENT_REQUESTS = 100
 //
 //}
 
-func CreateUsers(credentials []models.UserCredentials) []models.User {
+func CreateUsers(credentials []models.UserCredentials) []*models.User {
 	fmt.Println("---- Registering Users ----")
-	var users []models.User
+	var users []*models.User
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
@@ -38,7 +38,7 @@ func CreateUsers(credentials []models.UserCredentials) []models.User {
 			}
 
 			registerResponse, err := user.ApiClient.NewRequest().SetHeader("Content-Type", "application/json").
-				SetBody(&credentials).Post(fmt.Sprintf("%s/api/users/signup", BASE_URL))
+				SetBody(&credentials).Post(fmt.Sprintf("http://%s/api/users/signup", BASE_URL))
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -51,7 +51,7 @@ func CreateUsers(credentials []models.UserCredentials) []models.User {
 			}
 
 			mu.Lock()
-			users = append(users, user)
+			users = append(users, &user)
 			mu.Unlock()
 			fmt.Println("REGISTERED user: " + credentials.EmailAddress)
 		}(credentials)
@@ -62,17 +62,17 @@ func CreateUsers(credentials []models.UserCredentials) []models.User {
 	return users
 }
 
-func LoginAndRetrieveToken(users []models.User) {
+func LoginAndRetrieveToken(users []*models.User) {
 	fmt.Println("---- RETRIEVING TOKENS ----")
 	var wg sync.WaitGroup
 
 	for _, user := range users {
 		wg.Add(1)
 
-		go func(user models.User) {
+		go func(user *models.User) {
 			defer wg.Done()
-			login(&user)
-			validateAccess(&user)
+			login(user)
+			validateAccess(user)
 		}(user)
 	}
 
@@ -91,7 +91,7 @@ func login(user *models.User) {
 
 	loginResponse, err := user.ApiClient.NewRequest().
 		SetHeader("Content-Type", "application/json").
-		SetBody(&LoginBody).Post(fmt.Sprintf("%s/api/users/login", BASE_URL))
+		SetBody(&LoginBody).Post(fmt.Sprintf("http://%s/api/users/login", BASE_URL))
 
 	if err != nil {
 		fmt.Printf("Error logging in user %s: %v\n", user.Credentials.EmailAddress, err)
@@ -115,7 +115,7 @@ func login(user *models.User) {
 func validateAccess(user *models.User) {
 
 	meResponse, err := user.ApiClient.NewRequest().
-		Get(fmt.Sprintf("%s/api/users/me", BASE_URL))
+		Get(fmt.Sprintf("http://%s/api/users/me", BASE_URL))
 
 	if err != nil {
 		fmt.Printf("Error validating token for user %s: %v\n", user.Credentials.EmailAddress, err)
