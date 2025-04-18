@@ -45,6 +45,7 @@ func main() {
 	}
 
 	randomUsers := services.GenerateRandomUsers(desiredNumberOfUsers)
-	services.CreateUsers(randomUsers)
+	users := services.CreateUsers(randomUsers)
+	services.LoginAndRetrieveToken(users)
 
 }
