@@ -10,5 +10,6 @@ type User struct {
 	ApiClient    *resty.Client
 	Token        string
 	WsConnection *websocket.Conn
+	UserID       int64
 	// Eventually store WS connection in here?
 }

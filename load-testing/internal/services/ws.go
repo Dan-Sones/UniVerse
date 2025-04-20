@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	"load-testing/internal/models"
 	"log"
@@ -10,9 +9,8 @@ import (
 	"sync"
 )
 
-func PerformTests(conversations []*models.Conversation) {
+func CreateWsConnectionsForConversations(conversations []*models.Conversation) {
 	var wg sync.WaitGroup
-
 	semaphore := make(chan struct{}, MAX_CONCURRENT_REQUESTS)
 
 	for _, conv := range conversations {
@@ -26,17 +24,14 @@ func PerformTests(conversations []*models.Conversation) {
 			createWSConnectionsForConversation(conv)
 
 		}(conv)
-
 	}
 
 	wg.Wait()
-
 }
 
 func createWSConnectionsForConversation(conv *models.Conversation) {
 	conv.Sender.WsConnection = createWS(conv.Sender.Token)
-	conv.Receiver.WsConnection = createWS(conv.Sender.Token)
-	fmt.Println("Established WS Connections for conversation ")
+	conv.Receiver.WsConnection = createWS(conv.Receiver.Token)
 }
 
 func createWS(token string) *websocket.Conn {

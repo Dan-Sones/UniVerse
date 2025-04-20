@@ -9,7 +9,7 @@ import (
 )
 
 const BASE_URL = "localhost:80"
-const MAX_CONCURRENT_REQUESTS = 100
+const MAX_CONCURRENT_REQUESTS = 10
 
 //
 //func getTokens(users []models.UserCredentials) []models.UserCredentials {
@@ -114,7 +114,14 @@ func login(user *models.User) {
 
 func validateAccess(user *models.User) {
 
+	meResponseBody := struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Id       int64  `json:"id"`
+	}{}
+
 	meResponse, err := user.ApiClient.NewRequest().
+		SetResult(&meResponseBody).
 		Get(fmt.Sprintf("http://%s/api/users/me", BASE_URL))
 
 	if err != nil {
@@ -126,6 +133,8 @@ func validateAccess(user *models.User) {
 		fmt.Printf("Unable to validate token for user %s: %s\n", user.Credentials.EmailAddress, meResponse.String())
 		return
 	}
+
+	user.UserID = meResponseBody.Id
 
 	fmt.Printf("VALID token for user : %s\n", user.Credentials.Username)
 }
