@@ -12,7 +12,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
     }]
   })
 }
-// Not sure why but I seem to need to attach this manually to allow ecs to pull from ecr?
+
 resource "aws_iam_role_policy" "ecs_exec_ecr_access" {
   name = "ecsTaskExecutionECRAccess"
   role = aws_iam_role.ecs_task_execution_role.id

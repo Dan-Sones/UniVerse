@@ -16,19 +16,7 @@ resource "aws_subnet" "public_subnet_2" {
   availability_zone       = "eu-west-2b"
 }
 
-resource "aws_subnet" "ec2_private_subnet_1" {
-  vpc_id            = aws_vpc.chat_vpc.id
-  cidr_block        = "10.0.3.0/24"
-  availability_zone = "eu-west-2a"
-}
 
-resource "aws_subnet" "ec2_private_subnet_2" {
-  vpc_id            = aws_vpc.chat_vpc.id
-  cidr_block        = "10.0.4.0/24"
-  availability_zone = "eu-west-2b"
-}
-
-# Private Subnet for RDS
 resource "aws_subnet" "rds_private_subnet_1" {
   vpc_id            = aws_vpc.chat_vpc.id
   cidr_block        = "10.0.5.0/24"
@@ -138,12 +126,6 @@ resource "aws_route_table_association" "public_subnet_ecs_2_assoc" {
   route_table_id = aws_route_table.public_rt.id
 }
 
-
-# Do some routing to allow the ecs instance to access the internet (OUTBOUND) so it can pull the deps it needs to access the server
-resource "aws_route_table_association" "private_subnet_assoc" {
-  subnet_id      = aws_subnet.ec2_private_subnet_1.id
-  route_table_id = aws_route_table.private_rt.id
-}
 
 
 resource "aws_eip" "nat_eip" {

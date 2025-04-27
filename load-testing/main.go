@@ -32,7 +32,7 @@ func main() {
 
 	for {
 		fmt.Println("")
-		fmt.Println("Please input your desired number of conversations to simulate (even amounts only)")
+		fmt.Println("Please input your desired number of users to simulate (even amounts only)")
 		_, err := fmt.Scan(&desiredNumberOfUsers)
 		if err != nil {
 			return
@@ -45,12 +45,28 @@ func main() {
 		fmt.Println("EVEN numbers only")
 	}
 
+	var messageCount int
+	fmt.Println("Please input the number of messages to send per conversation")
+	_, err := fmt.Scan(&messageCount)
+	if err != nil {
+		return
+	}
+
+	var delayTime int
+	fmt.Println("Please input the time across messages will be sent (in seconds)")
+	_, err = fmt.Scan(&delayTime)
+	if err != nil {
+		return
+	}
+
+	duration := time.Duration(delayTime) * time.Second
+
 	randomUsers := services.GenerateRandomUsers(desiredNumberOfUsers)
 	users := services.CreateUsers(randomUsers)
 	services.LoginAndRetrieveToken(users)
 	conversations := services.AllocateConversations(users)
-	services.CreateWsConnectionsForConversations(conversations)
-	time.Sleep(5 * time.Second)
-	services.PerformTests(conversations)
+	services.CreateWsConnectionsForConversations(conversations, duration)
+	time.Sleep(10 * time.Second)
+	services.PerformTests(conversations, messageCount, duration)
 
 }

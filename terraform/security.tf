@@ -1,8 +1,3 @@
-resource "aws_security_group" "bastion_sg" {
-  name   = "bastion-security-group"
-  vpc_id = aws_vpc.chat_vpc.id
-}
-
 resource "aws_security_group" "users_rds_sg" {
   name        = "users-rds-security-group"
   vpc_id      = aws_vpc.chat_vpc.id
@@ -106,23 +101,6 @@ resource "aws_security_group_rule" "allow_ecs_to_dynamo" {
   cidr_blocks       = [aws_subnet.ecs_private_subnet_1.cidr_block, aws_subnet.ecs_private_subnet_2.cidr_block]
 }
 
-resource "aws_security_group_rule" "allow_dev_ssh_to_bastion" {
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = ["${var.my_ip}/32"]
-  security_group_id = aws_security_group.bastion_sg.id
-}
-
-resource "aws_security_group_rule" "allow_bastion_egress" {
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.bastion_sg.id
-}
 
 resource "aws_security_group" "msk" {
   name   = "msk-security-group"

@@ -6,27 +6,20 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"sync"
+	"time"
 )
 
-func CreateWsConnectionsForConversations(conversations []*models.Conversation) {
-	var wg sync.WaitGroup
-	semaphore := make(chan struct{}, MAX_CONCURRENT_REQUESTS)
+func CreateWsConnectionsForConversations(conversations []*models.Conversation, totalDuration time.Duration) {
+	totalConnections := len(conversations) * 2
+	delay := totalDuration / time.Duration(totalConnections)
+
+	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
 
 	for _, conv := range conversations {
-		semaphore <- struct{}{}
-		wg.Add(1)
-
-		go func(conv *models.Conversation) {
-			defer wg.Done()
-			defer func() { <-semaphore }()
-
-			createWSConnectionsForConversation(conv)
-
-		}(conv)
+		<-ticker.C
+		go createWSConnectionsForConversation(conv)
 	}
-
-	wg.Wait()
 }
 
 func createWSConnectionsForConversation(conv *models.Conversation) {
