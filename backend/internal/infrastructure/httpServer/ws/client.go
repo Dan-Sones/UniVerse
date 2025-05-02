@@ -23,7 +23,9 @@ func (c *Client) ReadMessages() {
 	for {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
-			log.Println("Oh poop!:", err)
+			// TODO: Signal to frontend that the connection is closed
+			// Initiate retries
+			log.Println("Failed to read message!:", err)
 			break
 		}
 
@@ -33,9 +35,7 @@ func (c *Client) ReadMessages() {
 			log.Println("Error marshalling message!")
 			break
 		}
-
-		log.Println(messageStruct)
-
+		messageStruct.From = c.UserID
 		c.Hub.IncomingFromClientDevice <- messageStruct
 	}
 }
