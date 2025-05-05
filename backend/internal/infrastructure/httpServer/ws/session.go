@@ -54,7 +54,7 @@ func (h *Hub) handleIncomingFromClient(message *chat.InboundMessage) {
 	}
 
 	err = h.inboundMessagesWriter.WriteMessages(context.Background(), kafka.Message{
-		Key:   []byte(conversationId),
+		Key:   []byte(messageId),
 		Value: outboundMessageJSON,
 	})
 	if err != nil {
