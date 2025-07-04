@@ -1,6 +1,6 @@
 # UniVerse
 
-This Repository contains the code for my Distributed Systems Assignment Implementation (Scoring 80%). It combines a number of technologies in order to produce a fully deployable AWS architecture allowing for reliable and scalable delivery of messages.
+This Repository contains the code for my Distributed Systems Assignment Implementation (Scoring 82%). It combines a number of technologies in order to produce a fully deployable AWS architecture allowing for reliable and scalable delivery of messages.
 
 The frontend is written using React and the backend is written using Golang.
 
