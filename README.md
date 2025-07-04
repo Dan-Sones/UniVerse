@@ -10,7 +10,13 @@ Flink is written using Java, with the project based on the provided example Flin
 
 ## AWS Architecture Diagram
 
-![Universe Implemented](https://github.com/user-attachments/assets/f6b515d5-a132-42f8-b5f6-6a4cc744a07e)
+![Universe Implemented AWS Architecture Diagram](https://github.com/user-attachments/assets/f6b515d5-a132-42f8-b5f6-6a4cc744a07e)
+
+## Flink Flowchart 
+
+
+![UniVerse Flink flowchart](https://github.com/user-attachments/assets/3ba74c77-a460-40a1-8585-f8c51eb19e55)
+
 
 
 ## Setup
